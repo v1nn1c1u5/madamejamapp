@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 import 'dart:js_interop';
 import 'package:web/web.dart' as web;
@@ -6,76 +6,147 @@ import 'dart:async';
 import 'custom_inspector.dart';
 import 'dart:html' as html;
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 
-import '../core/app_export.dart';
-import '../widgets/custom_error_widget.dart';
 import './services/supabase_service.dart';
+import 'core/app_export.dart';
 
-var backendURL = "https://madamejam9949back.builtwithrocket.new/log-error";
-
-void main() async {
-  FlutterError.onError = (details) {
-    _sendOverflowError(details);
-  };
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Supabase
+  // Initialize Supabase with better error handling
   try {
     await SupabaseService.initialize();
+    if (kDebugMode) {
+      print('✅ Supabase initialized successfully');
+
+      // Test database connection
+      final connectionOk = await SupabaseService.instance.testConnection();
+      if (connectionOk) {
+        print('✅ Database connection verified');
+      } else {
+        print(
+            '⚠️  Database connection test failed - app will continue with limited functionality');
+      }
+    }
   } catch (e) {
-    debugPrint('Failed to initialize Supabase: $e');
+    if (kDebugMode) {
+      print('❌ Supabase initialization failed: $e');
+      print('🔧 Troubleshooting:');
+      print('   1. Check if you are running with --dart-define arguments');
+      print('   2. Verify SUPABASE_URL and SUPABASE_ANON_KEY are correct');
+      print('   3. Check internet connection');
+      print('   4. Verify Supabase project is active');
+    }
+
+    // Show error dialog in debug mode, continue app in release mode
+    if (kDebugMode) {
+      runApp(ErrorApp(error: e.toString()));
+      return;
+    }
   }
 
-  // 🚨 CRITICAL: Custom error handling - DO NOT REMOVE
-  ErrorWidget.builder = (FlutterErrorDetails details) {
-    return CustomErrorWidget(
-      errorDetails: details,
-    );
-  };
-  // 🚨 CRITICAL: Device orientation lock - DO NOT REMOVE
-  Future.wait([
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-  ]).then((value) {
-    runApp(MyApp());
-  });
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Sizer(builder: (context, orientation, screenType) {
+    return Sizer(builder: (context, orientation, deviceType) {
       return MaterialApp(
         navigatorObservers: [trackingRouteObserver1],
 
-        title: 'madame_jam',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.light,
-        // 🚨 CRITICAL: NEVER REMOVE OR MODIFY
-        builder: (context, child) {
+          title: 'Madame Jam',
+          theme: AppTheme.lightTheme,
+          debugShowCheckedModeBanner: false,
+          routes: AppRoutes.routes,
+          builder: (context, child) {
         
         final originalChild = MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              textScaler: TextScaler.linear(1.0),
-            ),
-            child: child!,
-          );
+                data: MediaQuery.of(context)
+                    .copyWith(textScaler: TextScaler.linear(1.0)),
+                child: child!);
         return CustomWidgetInspector(
           child: TrackingWidget(
             child: originalChild,
           ),
         );
-      },
-        // 🚨 END CRITICAL SECTION
-        debugShowCheckedModeBanner: false,
-        routes: AppRoutes.routes,
-        initialRoute: AppRoutes.initial,
-      
+      }
 );
     });
+  }
+}
+
+class ErrorApp extends StatelessWidget {
+  final String error;
+
+  const ErrorApp({Key? key, required this.error}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+        navigatorObservers: [trackingRouteObserver1],
+
+      title: 'Configuration Error',
+      home: Scaffold(
+        backgroundColor: Colors.red[50],
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: Colors.red),
+                SizedBox(height: 20),
+                Text(
+                  'Supabase Configuration Error',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Please run the app with proper environment variables:',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'flutter run --dart-define=SUPABASE_URL=your_url --dart-define=SUPABASE_ANON_KEY=your_key',
+                    style: TextStyle(fontFamily: 'monospace', fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Error details: $error',
+                  style: TextStyle(fontSize: 12, color: Colors.red[700]),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    
+        builder: (context, child) {
+          return CustomWidgetInspector(
+            child: TrackingWidget(
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+                child: child!,
+              ),
+            ),
+          );
+        }
+);
   }
 }
 final ValueNotifier<String> currentPageNotifier = ValueNotifier<String>('');

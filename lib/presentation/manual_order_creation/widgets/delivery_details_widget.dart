@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
 
-class DeliveryDetailsWidget extends StatelessWidget {
+class DeliveryDetailsWidget extends StatefulWidget {
   final DateTime? deliveryDate;
   final TimeOfDay? deliveryTimeStart;
   final TimeOfDay? deliveryTimeEnd;
@@ -27,6 +27,41 @@ class DeliveryDetailsWidget extends StatelessWidget {
     required this.onAddressChanged,
     required this.onInstructionsChanged,
   }) : super(key: key);
+
+  @override
+  State<DeliveryDetailsWidget> createState() => _DeliveryDetailsWidgetState();
+}
+
+class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
+  late TextEditingController _instructionsController;
+  late TextEditingController _addressController;
+
+  @override
+  void initState() {
+    super.initState();
+    _instructionsController =
+        TextEditingController(text: widget.specialInstructions);
+    _addressController = TextEditingController(text: widget.deliveryAddress);
+  }
+
+  @override
+  void didUpdateWidget(DeliveryDetailsWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update controllers when widget properties change
+    if (oldWidget.specialInstructions != widget.specialInstructions) {
+      _instructionsController.text = widget.specialInstructions;
+    }
+    if (oldWidget.deliveryAddress != widget.deliveryAddress) {
+      _addressController.text = widget.deliveryAddress;
+    }
+  }
+
+  @override
+  void dispose() {
+    _instructionsController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,12 +128,12 @@ class DeliveryDetailsWidget extends StatelessWidget {
                               color: Color(0xFF8B4513), size: 2.5.h),
                           SizedBox(width: 3.w),
                           Text(
-                            deliveryDate != null
-                                ? _formatDate(deliveryDate!)
+                            widget.deliveryDate != null
+                                ? _formatDate(widget.deliveryDate!)
                                 : 'Selecionar data',
                             style: GoogleFonts.inter(
                               fontSize: 14.sp,
-                              color: deliveryDate != null
+                              color: widget.deliveryDate != null
                                   ? Colors.black87
                                   : Colors.grey[400],
                             ),
@@ -135,12 +170,12 @@ class DeliveryDetailsWidget extends StatelessWidget {
                                     color: Color(0xFF8B4513), size: 2.5.h),
                                 SizedBox(width: 2.w),
                                 Text(
-                                  deliveryTimeStart != null
-                                      ? _formatTime(deliveryTimeStart!)
+                                  widget.deliveryTimeStart != null
+                                      ? _formatTime(widget.deliveryTimeStart!)
                                       : '--:--',
                                   style: GoogleFonts.inter(
                                     fontSize: 14.sp,
-                                    color: deliveryTimeStart != null
+                                    color: widget.deliveryTimeStart != null
                                         ? Colors.black87
                                         : Colors.grey[400],
                                   ),
@@ -175,12 +210,12 @@ class DeliveryDetailsWidget extends StatelessWidget {
                                     color: Color(0xFF8B4513), size: 2.5.h),
                                 SizedBox(width: 2.w),
                                 Text(
-                                  deliveryTimeEnd != null
-                                      ? _formatTime(deliveryTimeEnd!)
+                                  widget.deliveryTimeEnd != null
+                                      ? _formatTime(widget.deliveryTimeEnd!)
                                       : '--:--',
                                   style: GoogleFonts.inter(
                                     fontSize: 14.sp,
-                                    color: deliveryTimeEnd != null
+                                    color: widget.deliveryTimeEnd != null
                                         ? Colors.black87
                                         : Colors.grey[400],
                                   ),
@@ -269,12 +304,14 @@ class DeliveryDetailsWidget extends StatelessWidget {
                 _buildFormField(
                   label: 'Endereço Completo',
                   child: TextFormField(
-                    initialValue: deliveryAddress,
+                    controller: _addressController,
                     decoration:
                         _inputDecoration('Rua, número, bairro, cidade...'),
                     style: GoogleFonts.inter(fontSize: 14.sp),
                     maxLines: 3,
-                    onChanged: onAddressChanged,
+                    onChanged: (value) {
+                      widget.onAddressChanged(value);
+                    },
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Endereço de entrega é obrigatório';
@@ -330,12 +367,14 @@ class DeliveryDetailsWidget extends StatelessWidget {
                 _buildFormField(
                   label: 'Observações para Entrega',
                   child: TextFormField(
-                    initialValue: specialInstructions,
+                    controller: _instructionsController,
                     decoration: _inputDecoration(
                         'Ex: Entregar na portaria, tocar interfone 101, cuidado com o portão...'),
                     style: GoogleFonts.inter(fontSize: 14.sp),
                     maxLines: 4,
-                    onChanged: onInstructionsChanged,
+                    onChanged: (value) {
+                      widget.onInstructionsChanged(value);
+                    },
                   ),
                 ),
 
@@ -393,12 +432,15 @@ class DeliveryDetailsWidget extends StatelessWidget {
   }
 
   Widget _buildQuickTimeChip(String label, TimeOfDay start, TimeOfDay end) {
-    final isSelected = deliveryTimeStart == start && deliveryTimeEnd == end;
+    final isSelected = widget.deliveryTimeStart?.hour == start.hour &&
+        widget.deliveryTimeStart?.minute == start.minute &&
+        widget.deliveryTimeEnd?.hour == end.hour &&
+        widget.deliveryTimeEnd?.minute == end.minute;
 
     return GestureDetector(
       onTap: () {
-        onStartTimeChanged(start);
-        onEndTimeChanged(end);
+        widget.onStartTimeChanged(start);
+        widget.onEndTimeChanged(end);
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.5.w),
@@ -425,7 +467,7 @@ class DeliveryDetailsWidget extends StatelessWidget {
   Widget _buildInstructionChip(String instruction) {
     return GestureDetector(
       onTap: () {
-        final currentInstructions = specialInstructions.trim();
+        final currentInstructions = _instructionsController.text.trim();
         String newInstructions;
 
         if (currentInstructions.isEmpty) {
@@ -433,10 +475,17 @@ class DeliveryDetailsWidget extends StatelessWidget {
         } else if (currentInstructions.contains(instruction)) {
           return; // Already added
         } else {
+          // Add with proper separator
           newInstructions = '$currentInstructions; $instruction';
         }
 
-        onInstructionsChanged(newInstructions);
+        // Update controller and trigger callback
+        _instructionsController.text = newInstructions;
+        // Set cursor to end of text
+        _instructionsController.selection = TextSelection.fromPosition(
+          TextPosition(offset: _instructionsController.text.length),
+        );
+        widget.onInstructionsChanged(newInstructions);
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.5.w),
@@ -495,7 +544,8 @@ class DeliveryDetailsWidget extends StatelessWidget {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: deliveryDate ?? DateTime.now().add(const Duration(days: 1)),
+      initialDate:
+          widget.deliveryDate ?? DateTime.now().add(const Duration(days: 1)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 30)),
       builder: (context, child) {
@@ -514,14 +564,15 @@ class DeliveryDetailsWidget extends StatelessWidget {
     );
 
     if (picked != null) {
-      onDateChanged(picked);
+      widget.onDateChanged(picked);
     }
   }
 
   Future<void> _selectStartTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: deliveryTimeStart ?? const TimeOfDay(hour: 9, minute: 0),
+      initialTime:
+          widget.deliveryTimeStart ?? const TimeOfDay(hour: 9, minute: 0),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -538,14 +589,15 @@ class DeliveryDetailsWidget extends StatelessWidget {
     );
 
     if (picked != null) {
-      onStartTimeChanged(picked);
+      widget.onStartTimeChanged(picked);
     }
   }
 
   Future<void> _selectEndTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: deliveryTimeEnd ?? const TimeOfDay(hour: 12, minute: 0),
+      initialTime:
+          widget.deliveryTimeEnd ?? const TimeOfDay(hour: 12, minute: 0),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -562,7 +614,7 @@ class DeliveryDetailsWidget extends StatelessWidget {
     );
 
     if (picked != null) {
-      onEndTimeChanged(picked);
+      widget.onEndTimeChanged(picked);
     }
   }
 
