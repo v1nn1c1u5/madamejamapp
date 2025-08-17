@@ -3,7 +3,6 @@ import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
 import '../../services/bakery_service.dart';
-import '../../services/supabase_service.dart';
 import './widgets/calendar_widget.dart';
 import './widgets/metrics_card_widget.dart';
 import './widgets/order_item_widget.dart';
@@ -22,7 +21,6 @@ class _AdminDashboardState extends State<AdminDashboard>
   String _selectedChartPeriod = 'Diário';
   bool _isRefreshing = false;
   bool _isLoading = true;
-  String? _error;
 
   // Real data from Supabase
   List<Map<String, dynamic>> _dashboardMetrics = [];
@@ -61,37 +59,22 @@ class _AdminDashboardState extends State<AdminDashboard>
   Future<void> _loadDashboardData() async {
     setState(() {
       _isLoading = true;
-      _error = null;
     });
 
     try {
       final bakeryService = BakeryService.instance;
 
-      // Test connection first
-      if (!await SupabaseService.instance.testConnection()) {
-        throw Exception(
-            'Não foi possível conectar ao banco de dados. Verifique sua conexão com a internet.');
-      }
+      // Load dashboard metrics
+      final metrics = await bakeryService.getDashboardMetrics();
 
-      // Load dashboard metrics with timeout
-      final metrics = await bakeryService
-          .getDashboardMetrics()
-          .timeout(Duration(seconds: 30));
+      // Load recent orders (last 5)
+      final orders = await bakeryService.getOrders(limit: 5);
 
-      // Load recent orders (last 5) with timeout
-      final orders = await bakeryService
-          .getOrders(limit: 5)
-          .timeout(Duration(seconds: 30));
+      // Load all orders for the orders tab
+      final allOrders = await bakeryService.getOrders(limit: 50);
 
-      // Load all orders for the orders tab with timeout
-      final allOrders = await bakeryService
-          .getOrders(limit: 50)
-          .timeout(Duration(seconds: 30));
-
-      // Load products with timeout
-      final products = await bakeryService
-          .getProducts(limit: 20)
-          .timeout(Duration(seconds: 30));
+      // Load products
+      final products = await bakeryService.getProducts(limit: 20);
 
       // Transform metrics into display format
       final List<Map<String, dynamic>> metricsData = [
@@ -99,7 +82,7 @@ class _AdminDashboardState extends State<AdminDashboard>
           'title': 'Pedidos Total',
           'value': '${metrics['total_orders'] ?? 0}',
           'changePercentage':
-              '+${_calculateGrowth(metrics['total_orders'], 20)}%',
+              '+${_calculateGrowth(metrics['total_orders'], 20)}',
           'isPositive': true,
           'cardColor': const Color(0xFFF7CAC9).withValues(alpha: 0.3),
           'iconName': 'shopping_bag',
@@ -109,7 +92,7 @@ class _AdminDashboardState extends State<AdminDashboard>
           'value':
               'R\$ ${(metrics['total_revenue'] ?? 0.0).toStringAsFixed(2)}',
           'changePercentage':
-              '+${_calculateGrowth(metrics['total_revenue'], 1500)}%',
+              '+${_calculateGrowth(metrics['total_revenue'], 1500)}',
           'isPositive': true,
           'cardColor': const Color(0xFFFFD700).withValues(alpha: 0.3),
           'iconName': 'attach_money',
@@ -118,8 +101,8 @@ class _AdminDashboardState extends State<AdminDashboard>
           'title': 'Pendentes',
           'value': '${metrics['pending_orders'] ?? 0}',
           'changePercentage':
-              '${_calculateGrowthNegative(metrics['pending_orders'], 10)}%',
-          'isPositive': (metrics['pending_orders'] ?? 0) < 10,
+              '${_calculateGrowthNegative(metrics['pending_orders'], 10)}',
+          'isPositive': metrics['pending_orders'] < 10,
           'cardColor': const Color(0xFFFFA726).withValues(alpha: 0.3),
           'iconName': 'pending',
         },
@@ -127,7 +110,7 @@ class _AdminDashboardState extends State<AdminDashboard>
           'title': 'Clientes',
           'value': '${metrics['total_customers'] ?? 0}',
           'changePercentage':
-              '+${_calculateGrowth(metrics['total_customers'], 100)}%',
+              '+${_calculateGrowth(metrics['total_customers'], 100)}',
           'isPositive': true,
           'cardColor': const Color(0xFF4CAF50).withValues(alpha: 0.3),
           'iconName': 'people',
@@ -140,48 +123,15 @@ class _AdminDashboardState extends State<AdminDashboard>
         _allOrders = allOrders;
         _products = products;
         _isLoading = false;
-        _error = null;
       });
-
-      if (mounted) {
-        print('✅ Dashboard data loaded successfully');
-        print('   Metrics: ${_dashboardMetrics.length}');
-        print('   Recent Orders: ${_recentOrders.length}');
-        print('   Products: ${_products.length}');
-      }
     } catch (error) {
-      print('❌ Error loading dashboard data: $error');
-
-      String userFriendlyError;
-      if (error.toString().contains('timeout')) {
-        userFriendlyError =
-            'Timeout na conexão. Verifique sua internet e tente novamente.';
-      } else if (error.toString().contains('connection')) {
-        userFriendlyError =
-            'Erro de conexão com o banco de dados. Verifique sua configuração Supabase.';
-      } else if (error.toString().contains('Failed to get dashboard metrics')) {
-        userFriendlyError =
-            'Erro ao carregar métricas. Verifique se as tabelas existem no banco.';
-      } else {
-        userFriendlyError =
-            'Erro inesperado. Tente novamente em alguns instantes.';
-      }
-
+      print('Error loading dashboard data: $error');
       setState(() {
         _isLoading = false;
-        _error = userFriendlyError;
       });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(userFriendlyError),
-            backgroundColor: AppTheme.errorLight,
-            action: SnackBarAction(
-              label: 'Tentar Novamente',
-              textColor: Colors.white,
-              onPressed: () => _loadDashboardData(),
-            )));
-      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Erro ao carregar dados do dashboard: $error'),
+          backgroundColor: AppTheme.errorLight));
     }
   }
 
@@ -210,64 +160,7 @@ class _AdminDashboardState extends State<AdminDashboard>
 
   Widget _buildBody() {
     if (_isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: AppTheme.lightTheme.primaryColor),
-            SizedBox(height: 2.h),
-            Text('Carregando dados do dashboard...',
-                style: AppTheme.lightTheme.textTheme.bodyMedium),
-          ],
-        ),
-      );
-    }
-
-    if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.all(4.w),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: AppTheme.errorLight),
-              SizedBox(height: 2.h),
-              Text('Erro ao carregar o dashboard',
-                  style: AppTheme.lightTheme.textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w600, fontSize: 18.sp)),
-              SizedBox(height: 1.h),
-              Text(_error!,
-                  style: AppTheme.lightTheme.textTheme.bodyMedium
-                      ?.copyWith(color: AppTheme.textSecondaryLight),
-                  textAlign: TextAlign.center),
-              SizedBox(height: 3.h),
-              ElevatedButton.icon(
-                onPressed: _loadDashboardData,
-                icon: Icon(Icons.refresh),
-                label: Text('Tentar Novamente'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.lightTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-              SizedBox(height: 2.h),
-              TextButton(
-                onPressed: () async {
-                  final connectionOk =
-                      await SupabaseService.instance.testConnection();
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(connectionOk
-                        ? '✅ Conexão com o banco OK'
-                        : '❌ Falha na conexão com o banco'),
-                    backgroundColor: connectionOk ? Colors.green : Colors.red,
-                  ));
-                },
-                child: Text('Testar Conexão'),
-              ),
-            ],
-          ),
-        ),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     switch (_selectedTabIndex) {
@@ -456,8 +349,7 @@ class _AdminDashboardState extends State<AdminDashboard>
                       ? ClipRRect(
                           borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(12)),
-                          child: CustomImageWidget(
-                              imageUrl: primaryImage, fit: BoxFit.cover))
+                          child: CustomImageWidget(imageUrl: primaryImage, fit: BoxFit.cover))
                       : Center(
                           child: CustomIconWidget(
                               iconName: 'image',

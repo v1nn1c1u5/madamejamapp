@@ -430,8 +430,8 @@ class _ManualOrderCreationState extends State<ManualOrderCreation>
 
                 // Tab 6: Order Notes and Final Review
                 OrderNotesWidget(
-                  internalNotes: _orderNotes,
                   onNotesChanged: _handleOrderNotes,
+                  internalNotes: '',
                 ),
               ]),
             ),

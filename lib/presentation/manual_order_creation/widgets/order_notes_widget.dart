@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
 
-class OrderNotesWidget extends StatefulWidget {
+class OrderNotesWidget extends StatelessWidget {
   final String internalNotes;
   final ValueChanged<String> onNotesChanged;
 
@@ -11,34 +11,6 @@ class OrderNotesWidget extends StatefulWidget {
     required this.internalNotes,
     required this.onNotesChanged,
   }) : super(key: key);
-
-  @override
-  State<OrderNotesWidget> createState() => _OrderNotesWidgetState();
-}
-
-class _OrderNotesWidgetState extends State<OrderNotesWidget> {
-  late TextEditingController _textController;
-
-  @override
-  void initState() {
-    super.initState();
-    _textController = TextEditingController(text: widget.internalNotes);
-  }
-
-  @override
-  void didUpdateWidget(OrderNotesWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Update controller if the external value changes
-    if (widget.internalNotes != oldWidget.internalNotes) {
-      _textController.text = widget.internalNotes;
-    }
-  }
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,15 +64,13 @@ class _OrderNotesWidgetState extends State<OrderNotesWidget> {
 
           // Notes Field
           TextFormField(
-            controller: _textController,
+            initialValue: internalNotes,
             decoration: _inputDecoration(
               'Ex: Cliente especial, atenção ao horário, produto personalizado...',
             ),
             style: GoogleFonts.inter(fontSize: 14.sp),
             maxLines: 4,
-            onChanged: (value) {
-              widget.onNotesChanged(value);
-            },
+            onChanged: onNotesChanged,
           ),
 
           SizedBox(height: 3.h),
@@ -135,34 +105,15 @@ class _OrderNotesWidgetState extends State<OrderNotesWidget> {
   Widget _buildQuickNoteChip(String note) {
     return GestureDetector(
       onTap: () {
-        // Get current text from the text controller instead of stale internalNotes
-        String currentText = _textController.text.trim();
-        String newNotes;
+        String newNotes = internalNotes.trim();
 
-        if (currentText.isEmpty) {
+        if (newNotes.isEmpty) {
           newNotes = note;
-        } else if (!currentText.contains(note)) {
-          // Check if current text ends with punctuation
-          if (currentText.endsWith('.') ||
-              currentText.endsWith(';') ||
-              currentText.endsWith(',')) {
-            newNotes = '$currentText $note';
-          } else {
-            newNotes = '$currentText; $note';
-          }
-        } else {
-          // Note already exists, don't add duplicates
-          return;
+        } else if (!newNotes.contains(note)) {
+          newNotes = '$newNotes; $note';
         }
 
-        // Update the text controller and notify parent
-        _textController.text = newNotes;
-        widget.onNotesChanged(newNotes);
-
-        // Move cursor to end
-        _textController.selection = TextSelection.fromPosition(
-          TextPosition(offset: newNotes.length),
-        );
+        onNotesChanged(newNotes);
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.5.w),

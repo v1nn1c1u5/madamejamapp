@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
 
-class DeliveryDetailsWidget extends StatefulWidget {
+class DeliveryDetailsWidget extends StatelessWidget {
   final DateTime? deliveryDate;
   final TimeOfDay? deliveryTimeStart;
   final TimeOfDay? deliveryTimeEnd;
@@ -27,41 +27,6 @@ class DeliveryDetailsWidget extends StatefulWidget {
     required this.onAddressChanged,
     required this.onInstructionsChanged,
   }) : super(key: key);
-
-  @override
-  State<DeliveryDetailsWidget> createState() => _DeliveryDetailsWidgetState();
-}
-
-class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
-  late TextEditingController _instructionsController;
-  late TextEditingController _addressController;
-
-  @override
-  void initState() {
-    super.initState();
-    _instructionsController =
-        TextEditingController(text: widget.specialInstructions);
-    _addressController = TextEditingController(text: widget.deliveryAddress);
-  }
-
-  @override
-  void didUpdateWidget(DeliveryDetailsWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Update controllers when widget properties change
-    if (oldWidget.specialInstructions != widget.specialInstructions) {
-      _instructionsController.text = widget.specialInstructions;
-    }
-    if (oldWidget.deliveryAddress != widget.deliveryAddress) {
-      _addressController.text = widget.deliveryAddress;
-    }
-  }
-
-  @override
-  void dispose() {
-    _instructionsController.dispose();
-    _addressController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,12 +93,12 @@ class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
                               color: Color(0xFF8B4513), size: 2.5.h),
                           SizedBox(width: 3.w),
                           Text(
-                            widget.deliveryDate != null
-                                ? _formatDate(widget.deliveryDate!)
+                            deliveryDate != null
+                                ? _formatDate(deliveryDate!)
                                 : 'Selecionar data',
                             style: GoogleFonts.inter(
                               fontSize: 14.sp,
-                              color: widget.deliveryDate != null
+                              color: deliveryDate != null
                                   ? Colors.black87
                                   : Colors.grey[400],
                             ),
@@ -170,12 +135,12 @@ class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
                                     color: Color(0xFF8B4513), size: 2.5.h),
                                 SizedBox(width: 2.w),
                                 Text(
-                                  widget.deliveryTimeStart != null
-                                      ? _formatTime(widget.deliveryTimeStart!)
+                                  deliveryTimeStart != null
+                                      ? _formatTime(deliveryTimeStart!)
                                       : '--:--',
                                   style: GoogleFonts.inter(
                                     fontSize: 14.sp,
-                                    color: widget.deliveryTimeStart != null
+                                    color: deliveryTimeStart != null
                                         ? Colors.black87
                                         : Colors.grey[400],
                                   ),
@@ -210,12 +175,12 @@ class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
                                     color: Color(0xFF8B4513), size: 2.5.h),
                                 SizedBox(width: 2.w),
                                 Text(
-                                  widget.deliveryTimeEnd != null
-                                      ? _formatTime(widget.deliveryTimeEnd!)
+                                  deliveryTimeEnd != null
+                                      ? _formatTime(deliveryTimeEnd!)
                                       : '--:--',
                                   style: GoogleFonts.inter(
                                     fontSize: 14.sp,
-                                    color: widget.deliveryTimeEnd != null
+                                    color: deliveryTimeEnd != null
                                         ? Colors.black87
                                         : Colors.grey[400],
                                   ),
@@ -304,14 +269,12 @@ class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
                 _buildFormField(
                   label: 'Endereço Completo',
                   child: TextFormField(
-                    controller: _addressController,
+                    initialValue: deliveryAddress,
                     decoration:
                         _inputDecoration('Rua, número, bairro, cidade...'),
                     style: GoogleFonts.inter(fontSize: 14.sp),
                     maxLines: 3,
-                    onChanged: (value) {
-                      widget.onAddressChanged(value);
-                    },
+                    onChanged: onAddressChanged,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Endereço de entrega é obrigatório';
@@ -367,14 +330,12 @@ class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
                 _buildFormField(
                   label: 'Observações para Entrega',
                   child: TextFormField(
-                    controller: _instructionsController,
+                    initialValue: specialInstructions,
                     decoration: _inputDecoration(
                         'Ex: Entregar na portaria, tocar interfone 101, cuidado com o portão...'),
                     style: GoogleFonts.inter(fontSize: 14.sp),
                     maxLines: 4,
-                    onChanged: (value) {
-                      widget.onInstructionsChanged(value);
-                    },
+                    onChanged: onInstructionsChanged,
                   ),
                 ),
 
@@ -432,15 +393,12 @@ class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
   }
 
   Widget _buildQuickTimeChip(String label, TimeOfDay start, TimeOfDay end) {
-    final isSelected = widget.deliveryTimeStart?.hour == start.hour &&
-        widget.deliveryTimeStart?.minute == start.minute &&
-        widget.deliveryTimeEnd?.hour == end.hour &&
-        widget.deliveryTimeEnd?.minute == end.minute;
+    final isSelected = deliveryTimeStart == start && deliveryTimeEnd == end;
 
     return GestureDetector(
       onTap: () {
-        widget.onStartTimeChanged(start);
-        widget.onEndTimeChanged(end);
+        onStartTimeChanged(start);
+        onEndTimeChanged(end);
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.5.w),
@@ -467,7 +425,7 @@ class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
   Widget _buildInstructionChip(String instruction) {
     return GestureDetector(
       onTap: () {
-        final currentInstructions = _instructionsController.text.trim();
+        final currentInstructions = specialInstructions.trim();
         String newInstructions;
 
         if (currentInstructions.isEmpty) {
@@ -475,17 +433,10 @@ class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
         } else if (currentInstructions.contains(instruction)) {
           return; // Already added
         } else {
-          // Add with proper separator
           newInstructions = '$currentInstructions; $instruction';
         }
 
-        // Update controller and trigger callback
-        _instructionsController.text = newInstructions;
-        // Set cursor to end of text
-        _instructionsController.selection = TextSelection.fromPosition(
-          TextPosition(offset: _instructionsController.text.length),
-        );
-        widget.onInstructionsChanged(newInstructions);
+        onInstructionsChanged(newInstructions);
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.5.w),
@@ -544,8 +495,7 @@ class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate:
-          widget.deliveryDate ?? DateTime.now().add(const Duration(days: 1)),
+      initialDate: deliveryDate ?? DateTime.now().add(const Duration(days: 1)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 30)),
       builder: (context, child) {
@@ -564,15 +514,14 @@ class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
     );
 
     if (picked != null) {
-      widget.onDateChanged(picked);
+      onDateChanged(picked);
     }
   }
 
   Future<void> _selectStartTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime:
-          widget.deliveryTimeStart ?? const TimeOfDay(hour: 9, minute: 0),
+      initialTime: deliveryTimeStart ?? const TimeOfDay(hour: 9, minute: 0),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -589,15 +538,14 @@ class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
     );
 
     if (picked != null) {
-      widget.onStartTimeChanged(picked);
+      onStartTimeChanged(picked);
     }
   }
 
   Future<void> _selectEndTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime:
-          widget.deliveryTimeEnd ?? const TimeOfDay(hour: 12, minute: 0),
+      initialTime: deliveryTimeEnd ?? const TimeOfDay(hour: 12, minute: 0),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -614,7 +562,7 @@ class _DeliveryDetailsWidgetState extends State<DeliveryDetailsWidget> {
     );
 
     if (picked != null) {
-      widget.onEndTimeChanged(picked);
+      onEndTimeChanged(picked);
     }
   }
 

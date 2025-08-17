@@ -1,102 +1,142 @@
-# Madame Jam - Sistema de Gestão de Padaria
+# Flutter
 
-Sistema completo de gestão para padarias desenvolvido em Flutter com integração Supabase.
+A modern Flutter-based mobile application utilizing the latest mobile development technologies and tools for building responsive cross-platform applications.
 
-## 🚀 Como Executar o Projeto
+## 📋 Prerequisites
 
-### Pré-requisitos
-- Flutter SDK 3.6.0+
-- Dart 3.0+
-- Conta ativa no Supabase
+- Flutter SDK (^3.29.2)
+- Dart SDK
+- Android Studio / VS Code with Flutter extensions
+- Android SDK / Xcode (for iOS development)
 
-### 🔧 Configuração do Supabase
+## 🛠️ Installation
 
-1. **Obtenha suas credenciais do Supabase:**
-   - Acesse seu projeto no [Supabase Dashboard](https://supabase.com/dashboard)
-   - Vá em Settings → API
-   - Copie a `URL` e a `anon/public key`
+1. Install dependencies:
+```bash
+flutter pub get
+```
 
-2. **Execute o projeto com as variáveis de ambiente:**
+2. Run the application:
+
+To run the app with environment variables defined in an env.json file, follow the steps mentioned below:
+1. Through CLI
+    ```bash
+    flutter run --dart-define-from-file=env.json
+    ```
+2. For VSCode
+    - Open .vscode/launch.json (create it if it doesn't exist).
+    - Add or modify your launch configuration to include --dart-define-from-file:
+    ```json
+    {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "Launch",
+                "request": "launch",
+                "type": "dart",
+                "program": "lib/main.dart",
+                "args": [
+                    "--dart-define-from-file",
+                    "env.json"
+                ]
+            }
+        ]
+    }
+    ```
+3. For IntelliJ / Android Studio
+    - Go to Run > Edit Configurations.
+    - Select your Flutter configuration or create a new one.
+    - Add the following to the "Additional arguments" field:
+    ```bash
+    --dart-define-from-file=env.json
+    ```
+
+## 📁 Project Structure
+
+```
+flutter_app/
+├── android/            # Android-specific configuration
+├── ios/                # iOS-specific configuration
+├── lib/
+│   ├── core/           # Core utilities and services
+│   │   └── utils/      # Utility classes
+│   ├── presentation/   # UI screens and widgets
+│   │   └── splash_screen/ # Splash screen implementation
+│   ├── routes/         # Application routing
+│   ├── theme/          # Theme configuration
+│   ├── widgets/        # Reusable UI components
+│   └── main.dart       # Application entry point
+├── assets/             # Static assets (images, fonts, etc.)
+├── pubspec.yaml        # Project dependencies and configuration
+└── README.md           # Project documentation
+```
+
+## 🧩 Adding Routes
+
+To add new routes to the application, update the `lib/routes/app_routes.dart` file:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:package_name/presentation/home_screen/home_screen.dart';
+
+class AppRoutes {
+  static const String initial = '/';
+  static const String home = '/home';
+
+  static Map<String, WidgetBuilder> routes = {
+    initial: (context) => const SplashScreen(),
+    home: (context) => const HomeScreen(),
+    // Add more routes as needed
+  }
+}
+```
+
+## 🎨 Theming
+
+This project includes a comprehensive theming system with both light and dark themes:
+
+```dart
+// Access the current theme
+ThemeData theme = Theme.of(context);
+
+// Use theme colors
+Color primaryColor = theme.colorScheme.primary;
+```
+
+The theme configuration includes:
+- Color schemes for light and dark modes
+- Typography styles
+- Button themes
+- Input decoration themes
+- Card and dialog themes
+
+## 📱 Responsive Design
+
+The app is built with responsive design using the Sizer package:
+
+```dart
+// Example of responsive sizing
+Container(
+  width: 50.w, // 50% of screen width
+  height: 20.h, // 20% of screen height
+  child: Text('Responsive Container'),
+)
+```
+## 📦 Deployment
+
+Build the application for production:
 
 ```bash
-# Método 1: Via linha de comando (Recomendado)
-flutter run --dart-define=SUPABASE_URL=sua_url_aqui --dart-define=SUPABASE_ANON_KEY=sua_chave_aqui
+# For Android
+flutter build apk --release
 
-# Método 2: Para desenvolvimento contínuo, crie um arquivo .env ou configure no VS Code
+# For iOS
+flutter build ios --release
 ```
 
-### 🔍 Troubleshooting - Problemas de Conexão
+## 🙏 Acknowledgments
+- Built with [Rocket.new](https://rocket.new)
+- Powered by [Flutter](https://flutter.dev) & [Dart](https://dart.dev)
+- Styled with Material Design
 
-Se você estiver recebendo erros de conexão com o Supabase:
-
-#### 1. Verifique as Credenciais
-```bash
-# Certifique-se de usar as credenciais corretas
-flutter run --dart-define=SUPABASE_URL=https://seuprojeto.supabase.co --dart-define=SUPABASE_ANON_KEY=sua_chave_completa
-```
-
-#### 2. Teste a Conexão
-O app incluí um botão "Testar Conexão" na tela de erro para verificar se a conexão com o banco está funcionando.
-
-#### 3. Verifique o Status do Projeto Supabase
-- Acesse o Supabase Dashboard
-- Confirme que seu projeto está ativo
-- Verifique se não há problemas de billing
-
-#### 4. Logs de Debug
-Execute em modo debug para ver logs detalhados:
-```bash
-flutter run --debug --dart-define=SUPABASE_URL=sua_url --dart-define=SUPABASE_ANON_KEY=sua_chave
-```
-
-## 📋 Funcionalidades
-
-- **Dashboard Administrativo**: Métricas em tempo real
-- **Gestão de Produtos**: CRUD completo com imagens
-- **Gestão de Pedidos**: Acompanhamento de status
-- **Base de Clientes**: Cadastro e histórico
-- **Relatórios**: Análise de vendas e performance
-- **Autenticação**: Sistema seguro com RLS
-
-## 🏗️ Estrutura do Projeto
-
-```
-lib/
-├── main.dart                 # Ponto de entrada com inicialização Supabase
-├── services/
-│   ├── supabase_service.dart # Configuração e conexão Supabase
-│   ├── bakery_service.dart   # Operações de banco específicas
-│   └── auth_service.dart     # Autenticação
-├── presentation/             # Telas da aplicação
-└── core/                     # Configurações globais
-```
-
-## 🔐 Segurança
-
-O projeto implementa:
-- Row Level Security (RLS) no Supabase
-- Autenticação baseada em JWT
-- Políticas de acesso granulares
-- Validação de dados no frontend e backend
-
-## 🆘 Suporte
-
-Se continuar enfrentando problemas:
-
-1. Verifique se todas as tabelas existem no Supabase
-2. Confirme se as políticas RLS estão configuradas
-3. Teste a conexão diretamente no Supabase Dashboard
-4. Verifique os logs do Flutter para erros específicos
-
-## 📱 Plataformas Suportadas
-
-- ✅ Android
-- ✅ iOS  
-- ✅ Web
-- ✅ Windows
-- ✅ macOS
-- ✅ Linux
-
----
-
-Para mais informações sobre configuração avançada, consulte a documentação do Supabase em [docs.supabase.com](https://docs.supabase.com).
+Built with ❤️ on Rocket.new
