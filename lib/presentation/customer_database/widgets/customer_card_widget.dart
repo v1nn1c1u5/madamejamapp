@@ -12,17 +12,40 @@ class CustomerCardWidget extends StatelessWidget {
   final VoidCallback? onOrderTap;
 
   const CustomerCardWidget({
-    Key? key,
+    super.key,
     required this.customer,
     this.onTap,
     this.onMessageTap,
     this.onCallTap,
     this.onEditTap,
     this.onOrderTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    // DEBUG: printar o objeto customer recebido
+    // ignore: avoid_print
+    print('[CustomerCardWidget] customer: $customer');
+    // Fallbacks: aceitar dados flatten ou aninhados em user_profiles
+    final userProfiles = customer['user_profiles'] as Map<String, dynamic>?;
+    final fullName = (customer['full_name'] ?? userProfiles?['full_name'] ?? '')
+        .toString()
+        .trim();
+    final email =
+        (customer['email'] ?? userProfiles?['email'] ?? '').toString().trim();
+    final phone = (customer['phone'] ?? '').toString();
+    // Derivar status caso 'customer_status' não exista
+    final customerStatus = customer['customer_status'] ??
+        (customer['is_vip'] == true
+            ? 'vip'
+            : (customer['is_active'] == false ||
+                    (userProfiles?['is_active'] == false))
+                ? 'inativo'
+                : 'ativo');
+    String avatarLetter = 'C';
+    if (fullName.isNotEmpty) {
+      avatarLetter = fullName.characters.first.toUpperCase();
+    }
     return Card(
       margin: EdgeInsets.zero,
       elevation: 2,
@@ -43,8 +66,7 @@ class CustomerCardWidget extends StatelessWidget {
                     radius: 25,
                     backgroundColor: AppTheme.lightTheme.primaryColor,
                     child: Text(
-                      customer['full_name']?.substring(0, 1).toUpperCase() ??
-                          'C',
+                      avatarLetter,
                       style:
                           AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
                         color: Colors.white,
@@ -58,7 +80,7 @@ class CustomerCardWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          customer['full_name'] ?? 'Nome não informado',
+                          fullName.isNotEmpty ? fullName : 'Nome não informado',
                           style: AppTheme.lightTheme.textTheme.titleMedium
                               ?.copyWith(
                             fontWeight: FontWeight.w600,
@@ -81,11 +103,11 @@ class CustomerCardWidget extends StatelessWidget {
                     padding:
                         EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(customer['customer_status']),
+                      color: _getStatusColor(customerStatus),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      _getStatusText(customer['customer_status']),
+                      _getStatusText(customerStatus),
                       style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -106,7 +128,7 @@ class CustomerCardWidget extends StatelessWidget {
                   SizedBox(width: 1.w),
                   Expanded(
                     child: Text(
-                      customer['phone'] ?? 'Telefone não informado',
+                      phone.isNotEmpty ? phone : 'Telefone não informado',
                       style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                         color: AppTheme.textSecondaryLight,
                       ),
@@ -125,7 +147,7 @@ class CustomerCardWidget extends StatelessWidget {
                   SizedBox(width: 1.w),
                   Expanded(
                     child: Text(
-                      customer['email'] ?? 'Email não informado',
+                      email.isNotEmpty ? email : 'Email não informado',
                       style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                         color: AppTheme.textSecondaryLight,
                       ),

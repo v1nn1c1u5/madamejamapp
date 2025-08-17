@@ -9,10 +9,10 @@ class RegistrationFormWidget extends StatefulWidget {
   final bool isLoading;
 
   const RegistrationFormWidget({
-    Key? key,
+    super.key,
     required this.onFormSubmit,
     required this.isLoading,
-  }) : super(key: key);
+  });
 
   @override
   State<RegistrationFormWidget> createState() => _RegistrationFormWidgetState();
@@ -34,7 +34,7 @@ class _RegistrationFormWidgetState extends State<RegistrationFormWidget> {
   bool _isFormValid = false;
 
   // Validation states
-  Map<String, bool> _fieldValidation = {
+  final Map<String, bool> _fieldValidation = {
     'fullName': false,
     'email': false,
     'password': false,
@@ -89,7 +89,15 @@ class _RegistrationFormWidgetState extends State<RegistrationFormWidget> {
 
   bool _isValidBrazilianPhone(String phone) {
     String cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
-    return cleanPhone.length == 11 && cleanPhone.startsWith('55');
+    // Aceita formato nacional (11 dígitos) ou internacional (13 dígitos começando com 55)
+    if (cleanPhone.length == 11) {
+      // Ex: 71981919187
+      return true;
+    } else if (cleanPhone.length == 13 && cleanPhone.startsWith('55')) {
+      // Ex: 5571981919187
+      return true;
+    }
+    return false;
   }
 
   String _formatBrazilianPhone(String value) {
@@ -101,7 +109,7 @@ class _RegistrationFormWidgetState extends State<RegistrationFormWidget> {
       numbers = '55$numbers';
     }
 
-    if (numbers.length <= 2) return '+${numbers}';
+    if (numbers.length <= 2) return '+$numbers';
     if (numbers.length <= 4)
       return '+${numbers.substring(0, 2)} (${numbers.substring(2)}';
     if (numbers.length <= 9)
@@ -210,10 +218,10 @@ class _RegistrationFormWidgetState extends State<RegistrationFormWidget> {
             icon: 'email',
             keyboardType: TextInputType.emailAddress,
             isValid: _fieldValidation['email'] ?? false,
-            errorText:
-                _emailController.text.isNotEmpty && !(_fieldValidation['email'] ?? false)
-                    ? 'Digite um e-mail válido'
-                    : null,
+            errorText: _emailController.text.isNotEmpty &&
+                    !(_fieldValidation['email'] ?? false)
+                ? 'Digite um e-mail válido'
+                : null,
           ),
           SizedBox(height: 2.h),
 

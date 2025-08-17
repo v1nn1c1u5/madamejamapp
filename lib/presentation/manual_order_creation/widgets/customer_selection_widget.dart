@@ -9,10 +9,10 @@ class CustomerSelectionWidget extends StatefulWidget {
   final Function(Map<String, dynamic>) onCustomerSelected;
 
   const CustomerSelectionWidget({
-    Key? key,
+    super.key,
     required this.selectedCustomer,
     required this.onCustomerSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomerSelectionWidget> createState() =>
@@ -440,8 +440,11 @@ class _CustomerSelectionWidgetState extends State<CustomerSelectionWidget> {
       {bool isSelected = false}) {
     // Safe null checking for nested properties
     final userProfile = customer['user_profiles'] as Map<String, dynamic>?;
-    final name = userProfile?['full_name'] ?? 'Cliente Sem Nome';
-    final email = userProfile?['email'] ?? '';
+    final name = (userProfile?['full_name'] ??
+            customer['full_name'] ??
+            'Cliente Sem Nome')
+        .toString();
+    final email = (userProfile?['email'] ?? customer['email'] ?? '').toString();
     final phone = customer['phone'] ?? '';
     final city = customer['city'] ?? '';
     final isVip = customer['is_vip'] ?? false;

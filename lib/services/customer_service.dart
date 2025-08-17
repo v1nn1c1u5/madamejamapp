@@ -135,16 +135,37 @@ class CustomerService {
     bool ascending = false,
   }) async {
     try {
+      // Debug auth context
+      final currentUser = _client.auth.currentUser;
+      // ignore: avoid_print
+      print(
+          '[CustomerService] getAllCustomers() user=${currentUser?.email} id=${currentUser?.id}');
+
+      // Primary query with join bringing profile fields
       var query = _client.from('customers').select('''
-            *,
-            user_profiles!customers_user_profile_id_fkey (
-              id,
-              email,
-              full_name,
-              is_active,
-              created_at
-            )
-          ''');
+        id,
+        user_profile_id,
+        phone,
+        birth_date,
+        address_line1,
+        address_line2,
+        city,
+        state,
+        postal_code,
+        delivery_notes,
+        is_vip,
+        created_at,
+        updated_at,
+        user_profiles: user_profile_id (
+          id,
+          email,
+          full_name,
+          role,
+          is_active,
+          created_at,
+          updated_at
+        )
+      ''');
 
       // Apply filters
       if (isVip != null) {
@@ -158,11 +179,87 @@ class CustomerService {
       }
 
       // Apply ordering and limiting
-      final response = await query
-          .order(orderBy!, ascending: ascending)
-          .range(offset ?? 0, limit != null ? (offset ?? 0) + limit - 1 : 999);
+      PostgrestList response;
+      try {
+        response = await query.order(orderBy!, ascending: ascending).range(
+            offset ?? 0, limit != null ? (offset ?? 0) + limit - 1 : 999);
+      } on PostgrestException catch (e) {
+        // Fallback: retry without join if join caused issue
+        // (Helps diagnosticar problemas de relationship naming)
+        // ignore: avoid_print
+        print('[CustomerService] Primary select failed: ${e.message}');
+        final fallbackQuery = _client.from('customers').select('*');
+        response = await fallbackQuery
+            .order(orderBy!, ascending: ascending)
+            .range(
+                offset ?? 0, limit != null ? (offset ?? 0) + limit - 1 : 999);
+      }
 
-      return List<Map<String, dynamic>>.from(response);
+      // ignore: avoid_print
+      print('[CustomerService] getAllCustomers rows: ${response.length}');
+
+      // If no rows, attempt alternative join syntax (using * and simpler embed)
+      if (response.isEmpty) {
+        // ignore: avoid_print
+        print(
+            '[CustomerService] Primary query empty. Trying alternative join syntax...');
+        try {
+          final alt = await _client
+              .from('customers')
+              .select('''
+            *,
+            user_profiles: user_profile_id (id, email, full_name, is_active, created_at)
+          ''')
+              .order(orderBy, ascending: ascending)
+              .range(
+                  offset ?? 0, limit != null ? (offset ?? 0) + limit - 1 : 999);
+          // ignore: avoid_print
+          print('[CustomerService] Alternative join rows: ${alt.length}');
+          if (alt.isNotEmpty) {
+            response = alt;
+          }
+        } catch (e) {
+          // ignore: avoid_print
+          print('[CustomerService] Alternative join failed: $e');
+        }
+      }
+
+      // If still empty, try simplest select to rule out RLS
+      if (response.isEmpty) {
+        // ignore: avoid_print
+        print('[CustomerService] Still empty. Trying base select (*).');
+        try {
+          final base = await _client
+              .from('customers')
+              .select('*')
+              .order(orderBy, ascending: ascending)
+              .range(
+                  offset ?? 0, limit != null ? (offset ?? 0) + limit - 1 : 999);
+          // ignore: avoid_print
+          print('[CustomerService] Base select rows: ${base.length}');
+          if (base.isNotEmpty) {
+            response = base;
+          }
+        } catch (e) {
+          // ignore: avoid_print
+          print('[CustomerService] Base select failed: $e');
+        }
+      }
+
+      // Flatten user profile if present
+      final customers = List<Map<String, dynamic>>.from(response).map((c) {
+        final up = c['user_profiles'];
+        if (up is Map<String, dynamic>) {
+          c['email'] = up['email'];
+          c['full_name'] = up['full_name'];
+          c['role'] = up['role'];
+          c['is_active'] = up['is_active'];
+          c['user_profile_created_at'] = up['created_at'];
+          c['user_profile_updated_at'] = up['updated_at'];
+        }
+        return c;
+      }).toList();
+      return customers;
     } catch (error) {
       throw Exception('Erro ao buscar clientes: $error');
     }
@@ -172,11 +269,10 @@ class CustomerService {
   Future<bool> customerExistsByEmail(String email) async {
     try {
       final response = await _client
-          .from('customers')
-          .select('id, user_profiles!customers_user_profile_id_fkey(email)')
-          .eq('user_profiles.email', email)
+          .from('user_profiles')
+          .select('id')
+          .eq('email', email)
           .maybeSingle();
-
       return response != null;
     } catch (error) {
       return false;
@@ -213,9 +309,9 @@ class CustomerService {
       ''').eq('user_profiles.is_active', true).count();
 
       return {
-        'total_customers': totalData.count ?? 0,
-        'vip_customers': vipData.count ?? 0,
-        'active_customers': activeData.count ?? 0,
+        'total_customers': totalData.count,
+        'vip_customers': vipData.count,
+        'active_customers': activeData.count,
       };
     } catch (error) {
       throw Exception('Erro ao buscar estatísticas: $error');

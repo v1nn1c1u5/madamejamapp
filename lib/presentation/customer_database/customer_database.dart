@@ -10,7 +10,7 @@ import './widgets/customer_skeleton_widget.dart';
 import './widgets/empty_customers_widget.dart';
 
 class CustomerDatabase extends StatefulWidget {
-  const CustomerDatabase({Key? key}) : super(key: key);
+  const CustomerDatabase({super.key});
 
   @override
   State<CustomerDatabase> createState() => _CustomerDatabaseState();
@@ -95,24 +95,27 @@ class _CustomerDatabaseState extends State<CustomerDatabase>
       _filteredCustomers = _customers.where((customer) {
         final userProfile =
             customer['user_profiles'] as Map<String, dynamic>? ?? {};
+        // Fallback para campos flatten
+        final fullName = (userProfile['full_name'] ?? customer['full_name'])
+            ?.toString()
+            .toLowerCase();
+        final email = (userProfile['email'] ?? customer['email'])
+            ?.toString()
+            .toLowerCase();
+        final isActive = userProfile.isNotEmpty
+            ? userProfile['is_active']
+            : customer['is_active'];
 
         bool matchesSearch = query.isEmpty ||
-            (userProfile['full_name']
-                    ?.toString()
-                    .toLowerCase()
-                    .contains(query) ??
-                false) ||
+            (fullName?.contains(query) ?? false) ||
             (customer['phone']?.toString().toLowerCase().contains(query) ??
                 false) ||
-            (userProfile['email']?.toString().toLowerCase().contains(query) ??
-                false) ||
+            (email?.contains(query) ?? false) ||
             (customer['id']?.toString().toLowerCase().contains(query) ?? false);
 
         bool matchesFilter = _selectedFilter == 'Todos' ||
-            (_selectedFilter == 'Ativos' &&
-                (userProfile['is_active'] == true)) ||
-            (_selectedFilter == 'Inativos' &&
-                (userProfile['is_active'] != true)) ||
+            (_selectedFilter == 'Ativos' && (isActive == true)) ||
+            (_selectedFilter == 'Inativos' && (isActive != true)) ||
             (_selectedFilter == 'VIP' && customer['is_vip'] == true);
 
         return matchesSearch && matchesFilter;
@@ -148,12 +151,15 @@ class _CustomerDatabaseState extends State<CustomerDatabase>
     return _customers.where((customer) {
       final userProfile =
           customer['user_profiles'] as Map<String, dynamic>? ?? {};
+      final isActive = userProfile.isNotEmpty
+          ? userProfile['is_active']
+          : customer['is_active'];
 
       switch (filter) {
         case 'Ativos':
-          return userProfile['is_active'] == true;
+          return isActive == true;
         case 'Inativos':
-          return userProfile['is_active'] != true;
+          return isActive != true;
         case 'VIP':
           return customer['is_vip'] == true;
         default:
@@ -386,9 +392,6 @@ class _CustomerDatabaseState extends State<CustomerDatabase>
   }
 
   Widget _buildCustomerDetailsModal(Map<String, dynamic> customer) {
-    final userProfile =
-        customer['user_profiles'] as Map<String, dynamic>? ?? {};
-
     return Container(
       height: 70.h,
       decoration: BoxDecoration(

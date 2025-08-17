@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "name": "Flutter",
+            "type": "dart",
+            "emulatorId": "emulator-5554",
+            "request": "launch",
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define-from-file",
+                "env.json"
+            ]
+        }
+    ]
+}

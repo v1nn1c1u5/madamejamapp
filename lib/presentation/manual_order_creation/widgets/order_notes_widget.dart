@@ -2,15 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
 
-class OrderNotesWidget extends StatelessWidget {
+class OrderNotesWidget extends StatefulWidget {
   final String internalNotes;
   final ValueChanged<String> onNotesChanged;
 
   const OrderNotesWidget({
-    Key? key,
+    super.key,
     required this.internalNotes,
     required this.onNotesChanged,
-  }) : super(key: key);
+  });
+
+  @override
+  State<OrderNotesWidget> createState() => _OrderNotesWidgetState();
+}
+
+class _OrderNotesWidgetState extends State<OrderNotesWidget> {
+  late TextEditingController _notesController;
+
+  @override
+  void initState() {
+    super.initState();
+    _notesController = TextEditingController(text: widget.internalNotes);
+  }
+
+  @override
+  void didUpdateWidget(OrderNotesWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.internalNotes != oldWidget.internalNotes) {
+      _notesController.text = widget.internalNotes;
+    }
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,13 +91,13 @@ class OrderNotesWidget extends StatelessWidget {
 
           // Notes Field
           TextFormField(
-            initialValue: internalNotes,
+            controller: _notesController,
             decoration: _inputDecoration(
               'Ex: Cliente especial, atenção ao horário, produto personalizado...',
             ),
             style: GoogleFonts.inter(fontSize: 14.sp),
             maxLines: 4,
-            onChanged: onNotesChanged,
+            onChanged: widget.onNotesChanged,
           ),
 
           SizedBox(height: 3.h),
@@ -105,15 +132,25 @@ class OrderNotesWidget extends StatelessWidget {
   Widget _buildQuickNoteChip(String note) {
     return GestureDetector(
       onTap: () {
-        String newNotes = internalNotes.trim();
+        debugPrint('=== QUICK NOTE CHIP TAPPED: $note ===');
+        String currentNotes = _notesController.text.trim();
+        debugPrint('Current notes: "$currentNotes"');
 
-        if (newNotes.isEmpty) {
+        String newNotes;
+        if (currentNotes.isEmpty) {
           newNotes = note;
-        } else if (!newNotes.contains(note)) {
-          newNotes = '$newNotes; $note';
+          debugPrint('Adding first note: "$newNotes"');
+        } else if (!currentNotes.contains(note)) {
+          newNotes = '$currentNotes; $note';
+          debugPrint('Appending note: "$newNotes"');
+        } else {
+          debugPrint('Note already exists, skipping');
+          return;
         }
 
-        onNotesChanged(newNotes);
+        _notesController.text = newNotes;
+        widget.onNotesChanged(newNotes);
+        debugPrint('=== NOTE CALLBACK EXECUTED ===');
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.5.w),

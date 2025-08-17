@@ -11,253 +11,256 @@ class PaymentOptionsWidget extends StatelessWidget {
   final Function(double, String) onDiscountChanged;
 
   const PaymentOptionsWidget({
-    Key? key,
+    super.key,
     required this.selectedPaymentMethod,
     required this.discountAmount,
     required this.discountReason,
     required this.onPaymentMethodChanged,
     required this.onDiscountChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return SingleChildScrollView(
       padding: EdgeInsets.all(4.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(13),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Title
-          Row(
-            children: [
-              Icon(
-                Icons.payment,
-                size: 3.h,
-                color: Color(0xFF8B4513),
-              ),
-              SizedBox(width: 2.w),
-              Text(
-                'Pagamento e Desconto',
-                style: GoogleFonts.inter(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 3.h),
-
-          // Payment Methods
-          Text(
-            'Forma de Pagamento',
-            style: GoogleFonts.inter(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(4.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(13),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
-          ),
-          SizedBox(height: 2.h),
-
-          Column(
-            children: [
-              _buildPaymentOption(
-                'cash',
-                'Dinheiro',
-                Icons.money,
-                'Pagamento em espécie',
-              ),
-              SizedBox(height: 2.h),
-              _buildPaymentOption(
-                'card',
-                'Cartão',
-                Icons.credit_card,
-                'Débito ou crédito',
-              ),
-              SizedBox(height: 2.h),
-              _buildPaymentOption(
-                'pix',
-                'PIX',
-                Icons.qr_code,
-                'Transferência instantânea',
-              ),
-              SizedBox(height: 2.h),
-              _buildPaymentOption(
-                'credit',
-                'Fiado',
-                Icons.account_balance_wallet,
-                'Conta do cliente',
-              ),
-            ],
-          ),
-
-          SizedBox(height: 4.h),
-          Divider(color: Colors.grey[300]),
-          SizedBox(height: 3.h),
-
-          // Discount Section
-          Row(
-            children: [
-              Icon(
-                Icons.local_offer,
-                size: 2.5.h,
-                color: Color(0xFF8B4513),
-              ),
-              SizedBox(width: 2.w),
-              Text(
-                'Desconto',
-                style: GoogleFonts.inter(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Section Title
+            Row(
+              children: [
+                Icon(
+                  Icons.payment,
+                  size: 3.h,
+                  color: Color(0xFF8B4513),
                 ),
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () => _showDiscountDialog(context),
-                child: Text(
-                  discountAmount > 0 ? 'Alterar' : 'Adicionar',
+                SizedBox(width: 2.w),
+                Text(
+                  'Pagamento e Desconto',
                   style: GoogleFonts.inter(
-                    color: Color(0xFF8B4513),
-                    fontWeight: FontWeight.w500,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+            SizedBox(height: 3.h),
 
-          if (discountAmount > 0) ...[
-            SizedBox(height: 2.h),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(3.w),
-              decoration: BoxDecoration(
-                color: Colors.green[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green[200]!),
+            // Payment Methods
+            Text(
+              'Forma de Pagamento',
+              style: GoogleFonts.inter(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.check_circle,
-                          color: Colors.green[600], size: 2.5.h),
-                      SizedBox(width: 2.w),
-                      Text(
-                        'Desconto Aplicado',
-                        style: GoogleFonts.inter(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.green[700],
+            ),
+            SizedBox(height: 2.h),
+
+            Column(
+              children: [
+                _buildPaymentOption(
+                  'cash',
+                  'Dinheiro',
+                  Icons.money,
+                  'Pagamento em espécie',
+                ),
+                SizedBox(height: 2.h),
+                _buildPaymentOption(
+                  'card',
+                  'Cartão',
+                  Icons.credit_card,
+                  'Débito ou crédito',
+                ),
+                SizedBox(height: 2.h),
+                _buildPaymentOption(
+                  'pix',
+                  'PIX',
+                  Icons.qr_code,
+                  'Transferência instantânea',
+                ),
+                SizedBox(height: 2.h),
+                _buildPaymentOption(
+                  'reservation',
+                  'Reserva de 50%',
+                  Icons.account_balance_wallet,
+                  'Paga 50% agora, 50% na entrega',
+                ),
+              ],
+            ),
+
+            SizedBox(height: 4.h),
+            Divider(color: Colors.grey[300]),
+            SizedBox(height: 3.h),
+
+            // Discount Section
+            Row(
+              children: [
+                Icon(
+                  Icons.local_offer,
+                  size: 2.5.h,
+                  color: Color(0xFF8B4513),
+                ),
+                SizedBox(width: 2.w),
+                Text(
+                  'Desconto',
+                  style: GoogleFonts.inter(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => _showDiscountDialog(context),
+                  child: Text(
+                    discountAmount > 0 ? 'Alterar' : 'Adicionar',
+                    style: GoogleFonts.inter(
+                      color: Color(0xFF8B4513),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            if (discountAmount > 0) ...[
+              SizedBox(height: 2.h),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(3.w),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.check_circle,
+                            color: Colors.green[600], size: 2.5.h),
+                        SizedBox(width: 2.w),
+                        Text(
+                          'Desconto Aplicado',
+                          style: GoogleFonts.inter(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green[700],
+                          ),
                         ),
-                      ),
-                      const Spacer(),
+                        const Spacer(),
+                        Text(
+                          '- R\$ ${discountAmount.toStringAsFixed(2)}',
+                          style: GoogleFonts.inter(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.green[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (discountReason.isNotEmpty) ...[
+                      SizedBox(height: 1.h),
                       Text(
-                        '- R\$ ${discountAmount.toStringAsFixed(2)}',
+                        'Motivo: $discountReason',
                         style: GoogleFonts.inter(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.green[700],
+                          fontSize: 11.sp,
+                          color: Colors.green[600],
                         ),
                       ),
                     ],
-                  ),
-                  if (discountReason.isNotEmpty) ...[
                     SizedBox(height: 1.h),
+                    Row(
+                      children: [
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () => onDiscountChanged(0.0, ''),
+                          child: Text(
+                            'Remover Desconto',
+                            style: GoogleFonts.inter(
+                              fontSize: 11.sp,
+                              color: Colors.red[600],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ] else ...[
+              SizedBox(height: 2.h),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(3.w),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline,
+                        color: Colors.grey[500], size: 2.5.h),
+                    SizedBox(width: 2.w),
                     Text(
-                      'Motivo: $discountReason',
+                      'Nenhum desconto aplicado',
                       style: GoogleFonts.inter(
-                        fontSize: 11.sp,
-                        color: Colors.green[600],
+                        fontSize: 12.sp,
+                        color: Colors.grey[600],
                       ),
                     ),
                   ],
-                  SizedBox(height: 1.h),
-                  Row(
-                    children: [
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () => onDiscountChanged(0.0, ''),
-                        child: Text(
-                          'Remover Desconto',
-                          style: GoogleFonts.inter(
-                            fontSize: 11.sp,
-                            color: Colors.red[600],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
-          ] else ...[
-            SizedBox(height: 2.h),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(3.w),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
+
+              SizedBox(height: 3.h),
+
+              // Quick Discount Options
+              Text(
+                'Descontos Rápidos:',
+                style: GoogleFonts.inter(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                ),
               ),
-              child: Row(
+              SizedBox(height: 1.h),
+              Wrap(
+                spacing: 2.w,
+                runSpacing: 1.h,
                 children: [
-                  Icon(Icons.info_outline,
-                      color: Colors.grey[500], size: 2.5.h),
-                  SizedBox(width: 2.w),
-                  Text(
-                    'Nenhum desconto aplicado',
-                    style: GoogleFonts.inter(
-                      fontSize: 12.sp,
-                      color: Colors.grey[600],
-                    ),
-                  ),
+                  _buildQuickDiscountChip(
+                      context, '5%', 0.05, 'Desconto promocional'),
+                  _buildQuickDiscountChip(
+                      context, '10%', 0.10, 'Cliente fidelidade'),
+                  _buildQuickDiscountChip(
+                      context, 'R\$ 5,00', 5.0, 'Desconto fixo'),
+                  _buildQuickDiscountChip(
+                      context, 'R\$ 10,00', 10.0, 'Cortesia'),
                 ],
               ),
-            ),
+            ],
           ],
-
-          SizedBox(height: 3.h),
-
-          // Quick Discount Options
-          if (discountAmount == 0) ...[
-            Text(
-              'Descontos Rápidos:',
-              style: GoogleFonts.inter(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[600],
-              ),
-            ),
-            SizedBox(height: 1.h),
-            Wrap(
-              spacing: 2.w,
-              runSpacing: 1.h,
-              children: [
-                _buildQuickDiscountChip(
-                    context, '5%', 0.05, 'Desconto promocional'),
-                _buildQuickDiscountChip(
-                    context, '10%', 0.10, 'Cliente fidelidade'),
-                _buildQuickDiscountChip(
-                    context, 'R\$ 5,00', 5.0, 'Desconto fixo'),
-                _buildQuickDiscountChip(context, 'R\$ 10,00', 10.0, 'Cortesia'),
-              ],
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

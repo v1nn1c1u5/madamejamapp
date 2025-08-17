@@ -17,7 +17,8 @@ class BakeryService {
     int? limit,
   }) async {
     try {
-      PostgrestFilterBuilder<PostgrestList> query = _client.from('products').select('''
+      PostgrestFilterBuilder<PostgrestList> query =
+          _client.from('products').select('''
             *,
             product_categories(name),
             product_images(image_url, alt_text, is_primary)
@@ -136,7 +137,8 @@ class BakeryService {
     int? limit,
   }) async {
     try {
-      PostgrestFilterBuilder<PostgrestList> query = _client.from('orders').select('''
+      PostgrestFilterBuilder<PostgrestList> query =
+          _client.from('orders').select('''
             *,
             customers(
               *,
@@ -234,14 +236,37 @@ class BakeryService {
     int? limit,
   }) async {
     try {
-      PostgrestFilterBuilder<PostgrestList> query = _client.from('customers').select('''
-            *,
-            user_profiles(full_name, email, is_active)
-          ''');
+      PostgrestFilterBuilder<PostgrestList> query =
+          _client.from('customers').select('''
+    id,
+    user_profile_id,
+    phone,
+    birth_date,
+    address_line1,
+    address_line2,
+    city,
+    state,
+    postal_code,
+    delivery_notes,
+    is_vip,
+    created_at,
+    updated_at,
+    user_profiles: user_profile_id (
+      id,
+      email,
+      full_name,
+      role,
+      is_active,
+      created_at,
+      updated_at
+    )
+      ''');
 
       if (searchTerm != null && searchTerm.isNotEmpty) {
+        // Referenciar os campos do perfil via alias user_profiles
+        final safe = searchTerm.replaceAll(',', '');
         query = query.or(
-            'user_profiles.full_name.ilike.%$searchTerm%,user_profiles.email.ilike.%$searchTerm%,phone.ilike.%$searchTerm%');
+            'user_profiles.full_name.ilike.%$safe%,user_profiles.email.ilike.%$safe%,phone.ilike.%$safe%');
       }
 
       if (isVip != null) {
@@ -255,7 +280,22 @@ class BakeryService {
       }
 
       final response = await transformedQuery;
-      return List<Map<String, dynamic>>.from(response);
+      final customers =
+          List<Map<String, dynamic>>.from(response).map((customer) {
+        final userProfile = customer['user_profiles'];
+        if (userProfile != null) {
+          // Flatten all user_profiles fields into the customer object
+          customer['user_profile_id'] = userProfile['id'];
+          customer['email'] = userProfile['email'];
+          customer['full_name'] = userProfile['full_name'];
+          customer['role'] = userProfile['role'];
+          customer['is_active'] = userProfile['is_active'];
+          customer['user_profile_created_at'] = userProfile['created_at'];
+          customer['user_profile_updated_at'] = userProfile['updated_at'];
+        }
+        return customer;
+      }).toList();
+      return customers;
     } catch (error) {
       throw Exception('Failed to fetch customers: $error');
     }
@@ -311,7 +351,8 @@ class BakeryService {
     String? status,
   }) async {
     try {
-      PostgrestFilterBuilder<PostgrestList> query = _client.from('delivery_routes').select('''
+      PostgrestFilterBuilder<PostgrestList> query =
+          _client.from('delivery_routes').select('''
             *,
             user_profiles!driver_id(full_name),
             order_deliveries(
@@ -399,8 +440,8 @@ class BakeryService {
         'total_orders': orders.length,
         'completed_orders': completedOrders,
         'pending_orders': pendingOrders,
-        'active_products': productsCount.count ?? 0,
-        'total_customers': customersCount.count ?? 0,
+        'active_products': productsCount.count,
+        'total_customers': customersCount.count,
       };
     } catch (error) {
       throw Exception('Failed to fetch dashboard metrics: $error');

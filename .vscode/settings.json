@@ -1,0 +1,51 @@
+{
+  "dart.flutterSdkPath": ".fvm/versions/3.29.2",
+  // Flutter Web Debugging Settings
+  "dart.debugExternalPackageLibraries": true,
+  "dart.debugSdkLibraries": false,
+  "dart.flutterHotReloadOnSave": "all",
+  "dart.flutterHotRestartOnSave": "never",
+  "dart.openDevTools": "flutter",
+  "dart.vmServicePort": 9100,
+  // Chrome Debugging
+  "debug.chrome.useV3": true,
+  "debug.allowBreakpointsEverywhere": true,
+  // File associations
+  "files.associations": {
+    "*.dart": "dart"
+  },
+  // Terminal settings for Flutter commands
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell"
+    }
+  },
+  // Dart & Flutter settings
+  "dart.previewHotReloadOnSaveWatcher": true,
+  "dart.flutterCreatePlatforms": [
+    "android",
+    "ios",
+    "web"
+  ],
+  // Editor settings for better debugging
+  "editor.rulers": [
+    80,
+    120
+  ],
+  "editor.wordWrap": "on",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  // Exclude build directories from search
+  "search.exclude": {
+    "**/build/**": true,
+    "**/.dart_tool/**": true,
+    "**/android/.gradle/**": true,
+    "**/ios/Pods/**": true
+  },
+  // Git settings
+  "git.ignoreLimitWarning": true
+}

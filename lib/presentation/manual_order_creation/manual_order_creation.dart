@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../services/auth_service.dart';
 import '../../services/bakery_service.dart';
-import '../../services/customer_service.dart';
 import '../../theme/app_theme.dart';
 import './widgets/cart_summary_widget.dart';
 import './widgets/customer_selection_widget.dart';
@@ -13,7 +12,7 @@ import './widgets/payment_options_widget.dart';
 import './widgets/product_selection_widget.dart';
 
 class ManualOrderCreation extends StatefulWidget {
-  const ManualOrderCreation({Key? key}) : super(key: key);
+  const ManualOrderCreation({super.key});
 
   @override
   State<ManualOrderCreation> createState() => _ManualOrderCreationState();
@@ -31,10 +30,11 @@ class _ManualOrderCreationState extends State<ManualOrderCreation>
   Map<String, dynamic> _deliveryDetails = {};
   String _paymentMethod = 'cash';
   String _orderNotes = '';
+  double _discountAmount = 0.0;
+  String _discountReason = '';
 
   // Services
   final _bakeryService = BakeryService.instance;
-  final _customerService = CustomerService.instance;
 
   void _handleAddToCart(Map<String, dynamic> product, int quantity) {
     setState(() {
@@ -137,22 +137,6 @@ class _ManualOrderCreationState extends State<ManualOrderCreation>
       _selectedCustomer = customer;
     });
     _tabController.animateTo(1);
-  }
-
-  void _handleProductsSelected(List<Map<String, dynamic>> cartItems) {
-    setState(() {
-      _cartItems = cartItems;
-    });
-    if (cartItems.isNotEmpty) {
-      _tabController.animateTo(2);
-    }
-  }
-
-  void _handleDeliveryDetails(Map<String, dynamic> details) {
-    setState(() {
-      _deliveryDetails = details;
-    });
-    _tabController.animateTo(3);
   }
 
   void _handlePaymentMethodSelected(String paymentMethod) {
@@ -259,6 +243,8 @@ class _ManualOrderCreationState extends State<ManualOrderCreation>
         _deliveryDetails = {};
         _paymentMethod = 'cash';
         _orderNotes = '';
+        _discountAmount = 0.0;
+        _discountReason = '';
       });
 
       _tabController.animateTo(0);
@@ -405,33 +391,60 @@ class _ManualOrderCreationState extends State<ManualOrderCreation>
 
                 // Tab 4: Delivery Details
                 DeliveryDetailsWidget(
-                    deliveryAddress: '',
-                    deliveryDate: DateTime.now(),
-                    deliveryTimeStart: TimeOfDay.now(),
-                    deliveryTimeEnd: TimeOfDay.now(),
-                    specialInstructions: '',
-                    onAddressChanged: (address) =>
-                        _deliveryDetails['address'] = address,
-                    onDateChanged: (date) => _deliveryDetails['date'] = date,
-                    onStartTimeChanged: (time) =>
-                        _deliveryDetails['start_time'] = time?.format(context),
-                    onEndTimeChanged: (time) =>
-                        _deliveryDetails['end_time'] = time?.format(context),
-                    onInstructionsChanged: (instructions) =>
-                        _deliveryDetails['instructions'] = instructions),
+                    deliveryAddress:
+                        _deliveryDetails['address'] as String? ?? '',
+                    deliveryDate: _deliveryDetails['date'] as DateTime?,
+                    deliveryTimeStart:
+                        _deliveryDetails['start_time_obj'] as TimeOfDay?,
+                    deliveryTimeEnd:
+                        _deliveryDetails['end_time_obj'] as TimeOfDay?,
+                    specialInstructions:
+                        _deliveryDetails['instructions'] as String? ?? '',
+                    onAddressChanged: (address) {
+                      setState(() {
+                        _deliveryDetails['address'] = address;
+                      });
+                    },
+                    onDateChanged: (date) {
+                      setState(() {
+                        _deliveryDetails['date'] = date;
+                      });
+                    },
+                    onStartTimeChanged: (time) {
+                      setState(() {
+                        _deliveryDetails['start_time'] = time?.format(context);
+                        _deliveryDetails['start_time_obj'] = time;
+                      });
+                    },
+                    onEndTimeChanged: (time) {
+                      setState(() {
+                        _deliveryDetails['end_time'] = time?.format(context);
+                        _deliveryDetails['end_time_obj'] = time;
+                      });
+                    },
+                    onInstructionsChanged: (instructions) {
+                      setState(() {
+                        _deliveryDetails['instructions'] = instructions;
+                      });
+                    }),
 
                 // Tab 5: Payment Options
                 PaymentOptionsWidget(
                     selectedPaymentMethod: _paymentMethod,
-                    discountAmount: 0.0,
-                    discountReason: '',
+                    discountAmount: _discountAmount,
+                    discountReason: _discountReason,
                     onPaymentMethodChanged: _handlePaymentMethodSelected,
-                    onDiscountChanged: (amount, reason) {}),
+                    onDiscountChanged: (amount, reason) {
+                      setState(() {
+                        _discountAmount = amount;
+                        _discountReason = reason;
+                      });
+                    }),
 
                 // Tab 6: Order Notes and Final Review
                 OrderNotesWidget(
                   onNotesChanged: _handleOrderNotes,
-                  internalNotes: '',
+                  internalNotes: _orderNotes,
                 ),
               ]),
             ),

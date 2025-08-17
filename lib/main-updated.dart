@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
       return MaterialApp(
         navigatorObservers: [trackingRouteObserver1],
 
-        title: 'madame_jam',
+        title: 'Madame Jam',
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.light,
