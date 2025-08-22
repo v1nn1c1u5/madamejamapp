@@ -10,7 +10,7 @@ import './widgets/reviews_section.dart';
 import './widgets/sticky_bottom_bar.dart';
 
 class ProductDetail extends StatefulWidget {
-  const ProductDetail({Key? key}) : super(key: key);
+  const ProductDetail({super.key});
 
   @override
   State<ProductDetail> createState() => _ProductDetailState();

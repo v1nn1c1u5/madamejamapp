@@ -23,7 +23,6 @@ class _CustomerDatabaseState extends State<CustomerDatabase>
   List<Map<String, dynamic>> _filteredCustomers = [];
   String _selectedFilter = 'Todos';
   bool _isLoading = true;
-  bool _isRefreshing = false;
 
   final List<String> _filterOptions = ['Todos', 'Ativos', 'Inativos', 'VIP'];
 
@@ -63,25 +62,19 @@ class _CustomerDatabaseState extends State<CustomerDatabase>
         _isLoading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao carregar clientes: $error'),
-          backgroundColor: AppTheme.errorLight,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar clientes: $error'),
+            backgroundColor: AppTheme.errorLight,
+          ),
+        );
+      }
     }
   }
 
   Future<void> _handleRefresh() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-
     await _loadCustomers();
-
-    setState(() {
-      _isRefreshing = false;
-    });
   }
 
   void _onSearchChanged() {
@@ -234,7 +227,7 @@ class _CustomerDatabaseState extends State<CustomerDatabase>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${_customers.length} clientes',
+                '$_customers.length clientes',
                 style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                   fontSize: 20.sp,
@@ -242,7 +235,7 @@ class _CustomerDatabaseState extends State<CustomerDatabase>
                 ),
               ),
               Text(
-                '${_filteredCustomers.length} visíveis',
+                '$_filteredCustomers.length visíveis',
                 style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
                   color: AppTheme.textSecondaryLight,
                   fontSize: 12.sp,

@@ -12,14 +12,14 @@ class MetricsCardWidget extends StatelessWidget {
   final String iconName;
 
   const MetricsCardWidget({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.changePercentage,
     required this.isPositive,
     required this.cardColor,
     required this.iconName,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -103,3 +103,5 @@ class MetricsCardWidget extends StatelessWidget {
     );
   }
 }
+
+

@@ -9,12 +9,12 @@ class CartSummaryWidget extends StatelessWidget {
   final double total;
 
   const CartSummaryWidget({
-    Key? key,
+    super.key,
     required this.cartItems,
     required this.subtotal,
     required this.discountAmount,
     required this.total,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +96,7 @@ class CartSummaryWidget extends StatelessWidget {
                   final index = entry.key;
                   final item = entry.value;
                   return _buildCartItem(item, index);
-                }).toList(),
+                }),
 
                 SizedBox(height: 3.h),
                 Divider(color: Colors.grey[300]),

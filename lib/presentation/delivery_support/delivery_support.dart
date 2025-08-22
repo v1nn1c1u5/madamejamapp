@@ -11,7 +11,7 @@ import './widgets/empty_deliveries_widget.dart';
 import './widgets/support_ticket_widget.dart';
 
 class DeliverySupport extends StatefulWidget {
-  const DeliverySupport({Key? key}) : super(key: key);
+  const DeliverySupport({super.key});
 
   @override
   State<DeliverySupport> createState() => _DeliverySupportState();
@@ -27,7 +27,6 @@ class _DeliverySupportState extends State<DeliverySupport>
 
   String _selectedStatus = 'Todos';
   bool _isLoading = true;
-  bool _isRefreshing = false;
 
   final List<String> _statusOptions = [
     'Todos',
@@ -70,12 +69,14 @@ class _DeliverySupportState extends State<DeliverySupport>
         _isLoading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao carregar dados: $error'),
-          backgroundColor: AppTheme.errorLight,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar dados: $error'),
+            backgroundColor: AppTheme.errorLight,
+          ),
+        );
+      }
     }
   }
 
@@ -105,15 +106,7 @@ class _DeliverySupportState extends State<DeliverySupport>
   }
 
   Future<void> _handleRefresh() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-
     await _loadData();
-
-    setState(() {
-      _isRefreshing = false;
-    });
   }
 
   void _applyFilters() {

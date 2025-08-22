@@ -10,12 +10,12 @@ class DeliverySchedulingSection extends StatefulWidget {
   final Function(String) onTimeSlotSelected;
 
   const DeliverySchedulingSection({
-    Key? key,
+    super.key,
     this.selectedDate,
     this.selectedTimeSlot,
     required this.onDateSelected,
     required this.onTimeSlotSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<DeliverySchedulingSection> createState() =>

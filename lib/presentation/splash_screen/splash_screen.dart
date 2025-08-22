@@ -5,7 +5,7 @@ import 'package:sizer/sizer.dart';
 import '../../core/app_export.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -119,23 +119,11 @@ class _SplashScreenState extends State<SplashScreen>
   void _navigateToNextScreen() {
     if (!mounted) return;
 
-    // Mock authentication check - in real app this would check actual auth status
-    final bool isAuthenticated = false; // Mock value
-    final bool isAdmin = false; // Mock value
-
     // Add haptic feedback
     HapticFeedback.lightImpact();
 
-    // Navigate based on user status
-    if (isAuthenticated) {
-      if (isAdmin) {
-        Navigator.pushReplacementNamed(context, '/admin-dashboard');
-      } else {
-        Navigator.pushReplacementNamed(context, '/product-catalog-home');
-      }
-    } else {
-      Navigator.pushReplacementNamed(context, '/customer-login');
-    }
+    // Navigate to customer login - placeholder for real authentication logic
+    Navigator.pushReplacementNamed(context, '/customer-login');
   }
 
   void _handleInitializationError() {

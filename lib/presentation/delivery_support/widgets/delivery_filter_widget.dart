@@ -11,12 +11,12 @@ class DeliveryFilterWidget extends StatelessWidget {
   final VoidCallback onTap;
 
   const DeliveryFilterWidget({
-    Key? key,
+    super.key,
     required this.title,
     required this.count,
     required this.isSelected,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -73,3 +73,5 @@ class DeliveryFilterWidget extends StatelessWidget {
     );
   }
 }
+
+

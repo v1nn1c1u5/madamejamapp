@@ -8,10 +8,10 @@ class CustomerSearchWidget extends StatelessWidget {
   final VoidCallback? onVoicePressed;
 
   const CustomerSearchWidget({
-    Key? key,
+    super.key,
     required this.controller,
     this.onVoicePressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -72,3 +72,5 @@ class CustomerSearchWidget extends StatelessWidget {
     );
   }
 }
+
+

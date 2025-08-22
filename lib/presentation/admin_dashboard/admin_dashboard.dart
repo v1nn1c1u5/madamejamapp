@@ -9,7 +9,7 @@ import './widgets/order_item_widget.dart';
 import './widgets/revenue_chart_widget.dart';
 
 class AdminDashboard extends StatefulWidget {
-  const AdminDashboard({Key? key}) : super(key: key);
+  const AdminDashboard({super.key});
 
   @override
   State<AdminDashboard> createState() => _AdminDashboardState();
@@ -19,7 +19,6 @@ class _AdminDashboardState extends State<AdminDashboard>
     with TickerProviderStateMixin {
   int _selectedTabIndex = 0;
   String _selectedChartPeriod = 'Diário';
-  bool _isRefreshing = false;
   bool _isLoading = true;
 
   // Real data from Supabase
@@ -101,7 +100,7 @@ class _AdminDashboardState extends State<AdminDashboard>
           'title': 'Pendentes',
           'value': '${metrics['pending_orders'] ?? 0}',
           'changePercentage':
-              '${_calculateGrowthNegative(metrics['pending_orders'], 10)}',
+              _calculateGrowthNegative(metrics['pending_orders'], 10),
           'isPositive': metrics['pending_orders'] < 10,
           'cardColor': const Color(0xFFFFA726).withValues(alpha: 0.3),
           'iconName': 'pending',
@@ -125,13 +124,15 @@ class _AdminDashboardState extends State<AdminDashboard>
         _isLoading = false;
       });
     } catch (error) {
-      print('Error loading dashboard data: $error');
+      debugPrint('Error loading dashboard data: $error');
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Erro ao carregar dados do dashboard: $error'),
-          backgroundColor: AppTheme.errorLight));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Erro ao carregar dados do dashboard: $error'),
+            backgroundColor: AppTheme.errorLight));
+      }
     }
   }
 
@@ -349,7 +350,8 @@ class _AdminDashboardState extends State<AdminDashboard>
                       ? ClipRRect(
                           borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(12)),
-                          child: CustomImageWidget(imageUrl: primaryImage, fit: BoxFit.cover))
+                          child: CustomImageWidget(
+                              imageUrl: primaryImage, fit: BoxFit.cover))
                       : Center(
                           child: CustomIconWidget(
                               iconName: 'image',
@@ -590,7 +592,7 @@ class _AdminDashboardState extends State<AdminDashboard>
 
   Widget _buildMetricsCards() {
     if (_dashboardMetrics.isEmpty) {
-      return Container(
+      return SizedBox(
           height: 12.h,
           child: ListView.separated(
               scrollDirection: Axis.horizontal,
@@ -607,7 +609,7 @@ class _AdminDashboardState extends State<AdminDashboard>
               }));
     }
 
-    return Container(
+    return SizedBox(
         height: 12.h,
         child: ListView.separated(
             scrollDirection: Axis.horizontal,
@@ -742,19 +744,13 @@ class _AdminDashboardState extends State<AdminDashboard>
   }
 
   Future<void> _handleRefresh() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-
     await _loadDashboardData();
 
-    setState(() {
-      _isRefreshing = false;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Dashboard atualizado!'),
-        duration: Duration(seconds: 2)));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Dashboard atualizado!'),
+          duration: Duration(seconds: 2)));
+    }
   }
 
   Future<void> _handleOrderStatusUpdate(Map<String, dynamic> order) async {
@@ -764,16 +760,20 @@ class _AdminDashboardState extends State<AdminDashboard>
 
       await bakeryService.updateOrderStatus(order['id'], newStatus);
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              'Status do pedido ${order['order_number']} atualizado para $newStatus'),
-          duration: const Duration(seconds: 2)));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                'Status do pedido ${order['order_number']} atualizado para $newStatus'),
+            duration: const Duration(seconds: 2)));
+      }
 
       await _loadDashboardData();
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Erro ao atualizar status: $error'),
-          backgroundColor: AppTheme.errorLight));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Erro ao atualizar status: $error'),
+            backgroundColor: AppTheme.errorLight));
+      }
     }
   }
 

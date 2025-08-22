@@ -10,12 +10,12 @@ class EmptyCustomersWidget extends StatelessWidget {
   final VoidCallback? onAddPressed;
 
   const EmptyCustomersWidget({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     this.showAddButton = true,
     this.onAddPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -83,3 +83,5 @@ class EmptyCustomersWidget extends StatelessWidget {
     );
   }
 }
+
+

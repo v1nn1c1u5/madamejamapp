@@ -54,7 +54,7 @@ class SessionTimeoutWidget extends StatelessWidget {
           ),
           SizedBox(height: 2.h),
           Text(
-            'Sua sessão expirará em ${timeoutCountdown} segundos por inatividade.',
+            'Sua sessão expirará em $timeoutCountdown segundos por inatividade.',
             style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
               color: Colors.orange.shade700,
             ),

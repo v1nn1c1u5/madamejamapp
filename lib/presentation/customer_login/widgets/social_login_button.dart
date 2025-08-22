@@ -10,16 +10,16 @@ class SocialLoginButton extends StatelessWidget {
   final bool isLoading;
 
   const SocialLoginButton({
-    Key? key,
+    super.key,
     required this.iconName,
     required this.label,
     required this.onPressed,
     this.isLoading = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 6.h,
       child: OutlinedButton(

@@ -10,7 +10,7 @@ import './widgets/primary_button.dart';
 import './widgets/social_login_button.dart';
 
 class CustomerLogin extends StatefulWidget {
-  const CustomerLogin({Key? key}) : super(key: key);
+  const CustomerLogin({super.key});
 
   @override
   State<CustomerLogin> createState() => _CustomerLoginState();

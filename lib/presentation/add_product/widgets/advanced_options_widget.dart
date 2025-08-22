@@ -17,7 +17,7 @@ class AdvancedOptionsWidget extends StatelessWidget {
   final ValueChanged<int?> onWeightChanged;
 
   const AdvancedOptionsWidget({
-    Key? key,
+    super.key,
     required this.preparationTimeController,
     required this.allergens,
     required this.availableAllergens,
@@ -29,7 +29,7 @@ class AdvancedOptionsWidget extends StatelessWidget {
     required this.onGlutenFreeChanged,
     required this.onVeganChanged,
     required this.onWeightChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

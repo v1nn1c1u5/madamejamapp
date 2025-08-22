@@ -9,7 +9,7 @@ import './widgets/order_summary_card.dart';
 import './widgets/special_instructions_section.dart';
 
 class ShoppingCart extends StatefulWidget {
-  const ShoppingCart({Key? key}) : super(key: key);
+  const ShoppingCart({super.key});
 
   @override
   State<ShoppingCart> createState() => _ShoppingCartState();

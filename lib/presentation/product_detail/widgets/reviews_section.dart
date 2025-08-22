@@ -9,11 +9,11 @@ class ReviewsSection extends StatefulWidget {
   final int totalReviews;
 
   const ReviewsSection({
-    Key? key,
+    super.key,
     required this.reviews,
     required this.averageRating,
     required this.totalReviews,
-  }) : super(key: key);
+  });
 
   @override
   State<ReviewsSection> createState() => _ReviewsSectionState();
@@ -115,7 +115,7 @@ class _ReviewsSectionState extends State<ReviewsSection> {
                     ),
                     SizedBox(width: 1.w),
                     Text(
-                      '(${widget.totalReviews})',
+                      '($widget.totalReviews)',
                       style: AppTheme.lightTheme.textTheme.labelSmall?.copyWith(
                         color: AppTheme
                             .lightTheme.colorScheme.onPrimaryContainer
@@ -130,9 +130,7 @@ class _ReviewsSectionState extends State<ReviewsSection> {
           SizedBox(height: 2.h),
 
           // Reviews list
-          ...displayReviews
-              .map<Widget>((review) => _buildReviewCard(review))
-              .toList(),
+          ...displayReviews.map<Widget>((review) => _buildReviewCard(review)),
 
           // Show more/less button
           if (widget.reviews.length > _initialDisplayCount)
@@ -284,7 +282,7 @@ class _ReviewsSectionState extends State<ReviewsSection> {
     } else if (difference.inDays == 1) {
       return 'Ontem';
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} dias atrás';
+      return '$difference.inDays dias atrás';
     } else if (difference.inDays < 30) {
       final weeks = (difference.inDays / 7).floor();
       return weeks == 1 ? '1 semana atrás' : '$weeks semanas atrás';

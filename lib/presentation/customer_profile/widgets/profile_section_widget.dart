@@ -10,11 +10,11 @@ class ProfileSectionWidget extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
 
   const ProfileSectionWidget({
-    Key? key,
+    super.key,
     required this.title,
     required this.children,
     this.padding,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -50,3 +50,5 @@ class ProfileSectionWidget extends StatelessWidget {
     );
   }
 }
+
+

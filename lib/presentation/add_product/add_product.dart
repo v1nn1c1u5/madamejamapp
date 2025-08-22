@@ -11,7 +11,7 @@ import './widgets/product_form_widget.dart';
 import './widgets/product_image_upload_widget.dart';
 
 class AddProduct extends StatefulWidget {
-  const AddProduct({Key? key}) : super(key: key);
+  const AddProduct({super.key});
 
   @override
   State<AddProduct> createState() => _AddProductState();
@@ -37,11 +37,11 @@ class _AddProductState extends State<AddProduct> {
   int _minStockLevel = 5;
   bool _isAvailable = true;
   int _preparationTime = 30;
-  List<String> _allergens = [];
+  final List<String> _allergens = [];
   bool _isGlutenFree = false;
   bool _isVegan = false;
   int? _weightGrams;
-  List<XFile> _productImages = [];
+  final List<XFile> _productImages = [];
   bool _isLoading = false;
   bool _isSaving = false;
 
@@ -183,7 +183,7 @@ class _AddProductState extends State<AddProduct> {
             isPrimary: i == 0, // First image is primary
           );
         } catch (imageError) {
-          print('Erro ao fazer upload da imagem ${i + 1}: $imageError');
+          debugPrint('Erro ao fazer upload da imagem ${i + 1}: $imageError');
         }
       }
 
@@ -198,6 +198,8 @@ class _AddProductState extends State<AddProduct> {
   }
 
   Future<void> _showSuccessDialog(Map<String, dynamic> product) async {
+    if (!mounted) return;
+
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -300,13 +302,15 @@ class _AddProductState extends State<AddProduct> {
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override

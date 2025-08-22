@@ -51,7 +51,7 @@ class SecurityFeaturesWidget extends StatelessWidget {
                 SizedBox(width: 2.w),
                 Expanded(
                   child: Text(
-                    'Tentativa ${failedAttempts}/3. Credenciais incorretas.',
+                    'Tentativa $failedAttempts/3. Credenciais incorretas.',
                     style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                       color: AppTheme.lightTheme.colorScheme.error,
                       fontWeight: FontWeight.w500,
@@ -102,7 +102,7 @@ class SecurityFeaturesWidget extends StatelessWidget {
                 ),
                 SizedBox(height: 1.h),
                 Text(
-                  'Tente novamente em ${lockoutTimeRemaining} segundos',
+                  'Tente novamente em $lockoutTimeRemaining segundos',
                   style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                     color: AppTheme.lightTheme.colorScheme.error,
                   ),

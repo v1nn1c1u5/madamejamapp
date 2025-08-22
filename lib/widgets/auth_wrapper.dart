@@ -10,12 +10,12 @@ class AuthWrapper extends StatefulWidget {
   final Widget? fallbackWidget;
 
   const AuthWrapper({
-    Key? key,
+    super.key,
     required this.child,
     this.requireAuth = false,
     this.requiredRole,
     this.fallbackWidget,
-  }) : super(key: key);
+  });
 
   @override
   State<AuthWrapper> createState() => _AuthWrapperState();

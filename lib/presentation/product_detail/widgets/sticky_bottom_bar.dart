@@ -11,13 +11,13 @@ class StickyBottomBar extends StatefulWidget {
   final int cartItemCount;
 
   const StickyBottomBar({
-    Key? key,
+    super.key,
     required this.product,
     required this.quantity,
     required this.customizations,
     required this.onAddToCart,
     this.cartItemCount = 0,
-  }) : super(key: key);
+  });
 
   @override
   State<StickyBottomBar> createState() => _StickyBottomBarState();
@@ -181,7 +181,7 @@ class _StickyBottomBarState extends State<StickyBottomBar>
                           builder: (context, child) {
                             return Transform.scale(
                                 scale: _scaleAnimation.value,
-                                child: Container(
+                                child: SizedBox(
                                     height: 14.w,
                                     child: ElevatedButton(
                                         onPressed: isAvailable && !_isLoading

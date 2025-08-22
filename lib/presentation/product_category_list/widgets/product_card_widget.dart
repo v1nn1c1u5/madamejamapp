@@ -12,14 +12,14 @@ class ProductCardWidget extends StatefulWidget {
   final VoidCallback onSimilarItems;
 
   const ProductCardWidget({
-    Key? key,
+    super.key,
     required this.product,
     required this.onViewDetails,
     required this.onAddToCart,
     required this.onFavorite,
     required this.onShare,
     required this.onSimilarItems,
-  }) : super(key: key);
+  });
 
   @override
   State<ProductCardWidget> createState() => _ProductCardWidgetState();

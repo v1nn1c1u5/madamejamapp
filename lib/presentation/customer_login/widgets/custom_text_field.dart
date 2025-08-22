@@ -15,7 +15,7 @@ class CustomTextField extends StatefulWidget {
   final bool enabled;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.label,
     required this.hint,
     required this.iconName,
@@ -25,7 +25,7 @@ class CustomTextField extends StatefulWidget {
     this.onChanged,
     this.controller,
     this.enabled = true,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -47,7 +47,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           ),
         ),
         SizedBox(height: 1.h),
-        Container(
+        SizedBox(
           width: double.infinity,
           child: TextFormField(
             controller: widget.controller,

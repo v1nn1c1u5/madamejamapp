@@ -19,7 +19,6 @@ class PixPaymentWidget extends StatefulWidget {
 class _PixPaymentWidgetState extends State<PixPaymentWidget>
     with TickerProviderStateMixin {
   late AnimationController _timerController;
-  late Animation<double> _timerAnimation;
   int _remainingMinutes = 15;
   int _remainingSeconds = 0;
 
@@ -33,8 +32,6 @@ class _PixPaymentWidgetState extends State<PixPaymentWidget>
       duration: const Duration(minutes: 15),
       vsync: this,
     );
-    _timerAnimation =
-        Tween<double>(begin: 1.0, end: 0.0).animate(_timerController);
 
     _timerController.addListener(() {
       final totalSeconds = (15 * 60 * (1 - _timerController.value)).round();

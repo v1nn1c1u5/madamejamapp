@@ -110,10 +110,12 @@ class _RegistrationFormWidgetState extends State<RegistrationFormWidget> {
     }
 
     if (numbers.length <= 2) return '+$numbers';
-    if (numbers.length <= 4)
+    if (numbers.length <= 4) {
       return '+${numbers.substring(0, 2)} (${numbers.substring(2)}';
-    if (numbers.length <= 9)
+    }
+    if (numbers.length <= 9) {
       return '+${numbers.substring(0, 2)} (${numbers.substring(2, 4)}) ${numbers.substring(4)}';
+    }
     if (numbers.length <= 13) {
       return '+${numbers.substring(0, 2)} (${numbers.substring(2, 4)}) ${numbers.substring(4, 9)}-${numbers.substring(9)}';
     }

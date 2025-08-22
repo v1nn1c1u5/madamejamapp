@@ -9,12 +9,12 @@ class SuccessMessageWidget extends StatelessWidget {
   final String? buttonText;
 
   const SuccessMessageWidget({
-    Key? key,
+    super.key,
     required this.onComplete,
     this.title,
     this.message,
     this.buttonText,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -96,3 +96,5 @@ class SuccessMessageWidget extends StatelessWidget {
     );
   }
 }
+
+

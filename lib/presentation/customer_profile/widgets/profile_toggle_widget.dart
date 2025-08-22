@@ -11,13 +11,13 @@ class ProfileToggleWidget extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   const ProfileToggleWidget({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     required this.iconName,
     required this.value,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -85,3 +85,5 @@ class ProfileToggleWidget extends StatelessWidget {
     );
   }
 }
+
+

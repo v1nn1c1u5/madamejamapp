@@ -10,12 +10,12 @@ class QuantitySelector extends StatefulWidget {
   final bool isEnabled;
 
   const QuantitySelector({
-    Key? key,
+    super.key,
     this.initialQuantity = 1,
     this.maxQuantity = 10,
     required this.onQuantityChanged,
     this.isEnabled = true,
-  }) : super(key: key);
+  });
 
   @override
   State<QuantitySelector> createState() => _QuantitySelectorState();
@@ -165,7 +165,7 @@ class _QuantitySelectorState extends State<QuantitySelector> {
             Padding(
               padding: EdgeInsets.only(top: 1.h),
               child: Text(
-                'Máximo disponível: ${widget.maxQuantity}',
+                'Máximo disponível: $widget.maxQuantity',
                 style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                   color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
                 ),

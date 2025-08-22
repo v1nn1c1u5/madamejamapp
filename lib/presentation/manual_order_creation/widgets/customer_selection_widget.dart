@@ -142,12 +142,15 @@ class _CustomerSelectionWidgetState extends State<CustomerSelectionWidget> {
       // If customer was created, reload the customer list
       if (result == true) {
         _loadCustomers();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Cliente criado com sucesso! Selecione-o da lista.'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text('Cliente criado com sucesso! Selecione-o da lista.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       }
     });
   }

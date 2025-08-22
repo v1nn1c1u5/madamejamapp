@@ -12,13 +12,13 @@ class ProductSelectionWidget extends StatefulWidget {
   final Function(int, String) onUpdateInstructions;
 
   const ProductSelectionWidget({
-    Key? key,
+    super.key,
     required this.cartItems,
     required this.onAddToCart,
     required this.onRemoveFromCart,
     required this.onUpdateQuantity,
     required this.onUpdateInstructions,
-  }) : super(key: key);
+  });
 
   @override
   State<ProductSelectionWidget> createState() => _ProductSelectionWidgetState();
@@ -300,7 +300,7 @@ class _ProductSelectionWidgetState extends State<ProductSelectionWidget>
           // Product Image
           ClipRRect(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            child: Container(
+            child: SizedBox(
               height: 20.h,
               width: double.infinity,
               child: primaryImage != null

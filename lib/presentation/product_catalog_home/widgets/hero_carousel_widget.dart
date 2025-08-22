@@ -47,7 +47,7 @@ class _HeroCarouselWidgetState extends State<HeroCarouselWidget> {
       );
     }
 
-    return Container(
+    return SizedBox(
       height: 25.h,
       child: Column(
         children: [

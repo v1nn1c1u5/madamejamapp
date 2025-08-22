@@ -11,14 +11,14 @@ class InventorySectionWidget extends StatelessWidget {
   final ValueChanged<bool?> onAvailabilityChanged;
 
   const InventorySectionWidget({
-    Key? key,
+    super.key,
     required this.stockQuantity,
     required this.minStockLevel,
     required this.isAvailable,
     required this.onStockQuantityChanged,
     required this.onMinStockChanged,
     required this.onAvailabilityChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -9,11 +9,11 @@ class FilterModalWidget extends StatefulWidget {
   final Function(RangeValues, bool) onFiltersChanged;
 
   const FilterModalWidget({
-    Key? key,
+    super.key,
     required this.priceRange,
     required this.showAvailableOnly,
     required this.onFiltersChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<FilterModalWidget> createState() => _FilterModalWidgetState();

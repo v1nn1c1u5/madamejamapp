@@ -14,7 +14,7 @@ import './widgets/profile_section_widget.dart';
 import './widgets/profile_toggle_widget.dart';
 
 class CustomerProfile extends StatefulWidget {
-  const CustomerProfile({Key? key}) : super(key: key);
+  const CustomerProfile({super.key});
 
   @override
   State<CustomerProfile> createState() => _CustomerProfileState();
@@ -22,7 +22,6 @@ class CustomerProfile extends StatefulWidget {
 
 class _CustomerProfileState extends State<CustomerProfile> {
   final ImagePicker _imagePicker = ImagePicker();
-  List<CameraDescription>? _cameras;
   CameraController? _cameraController;
   XFile? _capturedImage;
 
@@ -103,7 +102,7 @@ class _CustomerProfileState extends State<CustomerProfile> {
 
   Future<void> _initializeCamera() async {
     try {
-      _cameras = await availableCameras();
+      await availableCameras();
     } catch (e) {
       debugPrint('Error initializing cameras: $e');
     }
@@ -115,6 +114,8 @@ class _CustomerProfileState extends State<CustomerProfile> {
   }
 
   Future<void> _showImagePickerDialog() async {
+    if (!mounted) return;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.lightTheme.colorScheme.surface,

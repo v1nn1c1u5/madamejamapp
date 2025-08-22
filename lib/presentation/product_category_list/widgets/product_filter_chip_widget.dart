@@ -9,11 +9,11 @@ class ProductFilterChipWidget extends StatelessWidget {
   final VoidCallback onRemove;
 
   const ProductFilterChipWidget({
-    Key? key,
+    super.key,
     required this.label,
     required this.count,
     required this.onRemove,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

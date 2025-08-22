@@ -18,7 +18,7 @@ import '../presentation/delivery_support/delivery_support.dart';
 import '../widgets/auth_wrapper.dart';
 
 class AppRoutes {
-  // TODO: Add your routes here
+  // Add your routes here
   static const String initial = '/';
   static const String productDetail = '/product-detail';
   static const String splash = '/splash-screen';
@@ -42,12 +42,12 @@ class AppRoutes {
     productDetail: (context) => const ProductDetail(),
     splash: (context) => const SplashScreen(),
     orderHistory: (context) => AuthWrapper(
-          child: const OrderHistory(),
           requireAuth: true,
+          child: const OrderHistory(),
         ),
     checkoutPayment: (context) => AuthWrapper(
-          child: const CheckoutPayment(),
           requireAuth: true,
+          child: const CheckoutPayment(),
         ),
     shoppingCart: (context) => const ShoppingCart(),
     customerRegistration: (context) => const CustomerRegistration(),
@@ -55,35 +55,35 @@ class AppRoutes {
     productCategoryList: (context) => const ProductCategoryList(),
     productCatalogHome: (context) => const ProductCatalogHome(),
     adminDashboard: (context) => AuthWrapper(
-          child: const AdminDashboard(),
           requireAuth: true,
           requiredRole: 'admin',
+          child: const AdminDashboard(),
         ),
     customerLogin: (context) => const CustomerLogin(),
     customerProfile: (context) => AuthWrapper(
-          child: const CustomerProfile(),
           requireAuth: true,
+          child: const CustomerProfile(),
         ),
     addProduct: (context) => AuthWrapper(
-          child: const AddProduct(),
           requireAuth: true,
           requiredRole: 'admin',
+          child: const AddProduct(),
         ),
     manualOrderCreation: (context) => AuthWrapper(
-          child: const ManualOrderCreation(),
           requireAuth: true,
           requiredRole: 'admin',
+          child: const ManualOrderCreation(),
         ),
     customerDatabase: (context) => AuthWrapper(
-          child: const CustomerDatabase(),
           requireAuth: true,
           requiredRole: 'admin',
+          child: const CustomerDatabase(),
         ),
     deliverySupport: (context) => AuthWrapper(
-          child: const DeliverySupport(),
           requireAuth: true,
           requiredRole: 'admin',
+          child: const DeliverySupport(),
         ),
-    // TODO: Add your other routes here
+    // Add your other routes here
   };
 }

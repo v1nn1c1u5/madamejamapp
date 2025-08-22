@@ -104,8 +104,9 @@ class CustomerService {
       if (state != null) updateData['state'] = state;
       if (postalCode != null) updateData['postal_code'] = postalCode;
       if (deliveryNotes != null) updateData['delivery_notes'] = deliveryNotes;
-      if (birthDate != null)
+      if (birthDate != null) {
         updateData['birth_date'] = birthDate.toIso8601String().split('T')[0];
+      }
       if (isVip != null) updateData['is_vip'] = isVip;
 
       if (updateData.isEmpty) {

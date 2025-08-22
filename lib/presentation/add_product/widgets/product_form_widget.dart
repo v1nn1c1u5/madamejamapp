@@ -13,7 +13,7 @@ class ProductFormWidget extends StatelessWidget {
   final ValueChanged<String?> onCategoryChanged;
 
   const ProductFormWidget({
-    Key? key,
+    super.key,
     required this.nameController,
     required this.descriptionController,
     required this.priceController,
@@ -21,7 +21,7 @@ class ProductFormWidget extends StatelessWidget {
     required this.categories,
     required this.selectedCategoryId,
     required this.onCategoryChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -309,3 +309,5 @@ class ProductFormWidget extends StatelessWidget {
     );
   }
 }
+
+

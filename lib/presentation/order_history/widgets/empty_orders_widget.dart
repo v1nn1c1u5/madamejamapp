@@ -7,9 +7,9 @@ class EmptyOrdersWidget extends StatelessWidget {
   final VoidCallback onMakeFirstOrder;
 
   const EmptyOrdersWidget({
-    Key? key,
+    super.key,
     required this.onMakeFirstOrder,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

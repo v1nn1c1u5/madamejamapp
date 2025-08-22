@@ -11,16 +11,16 @@ class PrimaryButton extends StatelessWidget {
   final bool isEnabled;
 
   const PrimaryButton({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.isLoading = false,
     this.isEnabled = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 6.h,
       child: ElevatedButton(

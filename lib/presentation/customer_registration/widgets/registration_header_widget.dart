@@ -7,10 +7,10 @@ class RegistrationHeaderWidget extends StatelessWidget {
   final String? title;
 
   const RegistrationHeaderWidget({
-    Key? key,
+    super.key,
     required this.onBackPressed,
     this.title,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,3 +81,5 @@ class RegistrationHeaderWidget extends StatelessWidget {
     );
   }
 }
+
+

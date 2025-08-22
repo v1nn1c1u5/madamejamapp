@@ -5,7 +5,7 @@ import '../../../../core/app_export.dart';
 import '../../../theme/app_theme.dart';
 
 class SkeletonCardWidget extends StatefulWidget {
-  const SkeletonCardWidget({Key? key}) : super(key: key);
+  const SkeletonCardWidget({super.key});
 
   @override
   State<SkeletonCardWidget> createState() => _SkeletonCardWidgetState();

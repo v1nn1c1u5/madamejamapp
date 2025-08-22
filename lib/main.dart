@@ -22,9 +22,9 @@ void main() async {
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     debugPrint('=== FLUTTER ERROR ===');
-    debugPrint('Error: ${details.exception}');
-    debugPrint('Stack: ${details.stack}');
-    debugPrint('Context: ${details.context}');
+    debugPrint('Error: $details.exception');
+    debugPrint('Stack: $details.stack');
+    debugPrint('Context: $details.context');
     debugPrint('Platform: ${kIsWeb ? 'WEB' : 'MOBILE'}');
     debugPrint('====================');
   };
@@ -46,7 +46,7 @@ void main() async {
   // 🚨 CRITICAL: Custom error handling - DO NOT REMOVE
   ErrorWidget.builder = (FlutterErrorDetails details) {
     debugPrint('=== CUSTOM ERROR WIDGET TRIGGERED ===');
-    debugPrint('Error: ${details.exception}');
+    debugPrint('Error: $details.exception');
     debugPrint('=====================================');
     return CustomErrorWidget(
       errorDetails: details,

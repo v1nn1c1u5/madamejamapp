@@ -11,12 +11,12 @@ class OrderStatusChip extends StatelessWidget {
   final VoidCallback onTap;
 
   const OrderStatusChip({
-    Key? key,
+    super.key,
     required this.status,
     required this.count,
     required this.isSelected,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   Color _getStatusColor() {
     switch (status.toLowerCase()) {

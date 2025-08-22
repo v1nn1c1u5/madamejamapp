@@ -96,12 +96,14 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
 
   Future<void> _processPayment() async {
     if (!_isFormValid()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, preencha todos os campos obrigatórios'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Por favor, preencha todos os campos obrigatórios'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       return;
     }
 

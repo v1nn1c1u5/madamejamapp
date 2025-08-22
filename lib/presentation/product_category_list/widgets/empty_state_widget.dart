@@ -7,9 +7,9 @@ class EmptyStateWidget extends StatelessWidget {
   final VoidCallback onClearFilters;
 
   const EmptyStateWidget({
-    Key? key,
+    super.key,
     required this.onClearFilters,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

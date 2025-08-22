@@ -11,12 +11,12 @@ class CustomerFilterWidget extends StatelessWidget {
   final VoidCallback onTap;
 
   const CustomerFilterWidget({
-    Key? key,
+    super.key,
     required this.title,
     required this.count,
     required this.isSelected,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -73,3 +73,5 @@ class CustomerFilterWidget extends StatelessWidget {
     );
   }
 }
+
+

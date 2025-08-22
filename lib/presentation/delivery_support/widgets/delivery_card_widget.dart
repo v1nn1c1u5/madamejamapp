@@ -12,14 +12,14 @@ class DeliveryCardWidget extends StatelessWidget {
   final VoidCallback? onReportIssue;
 
   const DeliveryCardWidget({
-    Key? key,
+    super.key,
     required this.delivery,
     this.onTap,
     this.onStatusUpdate,
     this.onContactCustomer,
     this.onTrackDelivery,
     this.onReportIssue,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -368,3 +368,5 @@ class DeliveryCardWidget extends StatelessWidget {
     }
   }
 }
+
+

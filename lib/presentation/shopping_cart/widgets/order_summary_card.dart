@@ -11,13 +11,13 @@ class OrderSummaryCard extends StatelessWidget {
   final double minimumOrderValue;
 
   const OrderSummaryCard({
-    Key? key,
+    super.key,
     required this.subtotal,
     required this.deliveryFee,
     required this.taxes,
     required this.total,
     this.minimumOrderValue = 50.0,
-  }) : super(key: key);
+  });
 
   String _formatCurrency(double value) {
     return 'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';

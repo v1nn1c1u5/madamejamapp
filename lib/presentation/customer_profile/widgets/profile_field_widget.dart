@@ -11,13 +11,13 @@ class ProfileFieldWidget extends StatelessWidget {
   final bool isEditable;
 
   const ProfileFieldWidget({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.iconName,
     this.onTap,
     this.isEditable = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -90,3 +90,5 @@ class ProfileFieldWidget extends StatelessWidget {
     );
   }
 }
+
+

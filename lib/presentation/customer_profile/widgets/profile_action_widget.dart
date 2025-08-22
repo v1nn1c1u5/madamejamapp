@@ -13,7 +13,7 @@ class ProfileActionWidget extends StatelessWidget {
   final bool showArrow;
 
   const ProfileActionWidget({
-    Key? key,
+    super.key,
     required this.title,
     this.subtitle,
     required this.iconName,
@@ -21,7 +21,7 @@ class ProfileActionWidget extends StatelessWidget {
     this.iconColor,
     this.textColor,
     this.showArrow = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -95,3 +95,5 @@ class ProfileActionWidget extends StatelessWidget {
     );
   }
 }
+
+

@@ -8,7 +8,7 @@ import './widgets/order_skeleton_card.dart';
 import './widgets/order_status_chip.dart';
 
 class OrderHistory extends StatefulWidget {
-  const OrderHistory({Key? key}) : super(key: key);
+  const OrderHistory({super.key});
 
   @override
   State<OrderHistory> createState() => _OrderHistoryState();

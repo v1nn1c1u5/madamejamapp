@@ -10,11 +10,11 @@ class RevenueChartWidget extends StatefulWidget {
   final Function(String) onPeriodChanged;
 
   const RevenueChartWidget({
-    Key? key,
+    super.key,
     required this.chartData,
     required this.selectedPeriod,
     required this.onPeriodChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<RevenueChartWidget> createState() => _RevenueChartWidgetState();
@@ -227,3 +227,5 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
         ]));
   }
 }
+
+

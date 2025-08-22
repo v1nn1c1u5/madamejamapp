@@ -102,17 +102,23 @@ class _ManualOrderCreationState extends State<ManualOrderCreation>
   Future<void> _checkAuth() async {
     try {
       if (!AuthService.instance.isSignedIn) {
-        Navigator.pushReplacementNamed(context, '/admin-login');
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/admin-login');
+        }
         return;
       }
 
       final isAdmin = await AuthService.instance.isAdmin();
       if (!isAdmin) {
-        Navigator.pushReplacementNamed(context, '/admin-dashboard');
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/admin-dashboard');
+        }
       }
     } catch (e) {
       _showErrorMessage('Erro de autenticação: ${e.toString()}');
-      Navigator.pushReplacementNamed(context, '/admin-login');
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/admin-login');
+      }
     }
   }
 
@@ -121,15 +127,19 @@ class _ManualOrderCreationState extends State<ManualOrderCreation>
       _errorMessage = message;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(message),
-        backgroundColor: AppTheme.lightTheme.colorScheme.error,
-        action: SnackBarAction(
-            label: 'OK',
-            textColor: Colors.white,
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            })));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(message),
+          backgroundColor: AppTheme.lightTheme.colorScheme.error,
+          action: SnackBarAction(
+              label: 'OK',
+              textColor: Colors.white,
+              onPressed: () {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                }
+              })));
+    }
   }
 
   void _handleCustomerSelected(Map<String, dynamic> customer) {
@@ -222,19 +232,23 @@ class _ManualOrderCreationState extends State<ManualOrderCreation>
       }
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-            'Pedido #$orderNumber criado com sucesso! Total: R\$ ${totalAmount.toStringAsFixed(2)}'),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'Ver Pedidos',
-          textColor: Colors.white,
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/admin-dashboard');
-          },
-        ),
-      ));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              'Pedido #$orderNumber criado com sucesso! Total: R\$ ${totalAmount.toStringAsFixed(2)}'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'Ver Pedidos',
+            textColor: Colors.white,
+            onPressed: () {
+              if (mounted) {
+                Navigator.pushReplacementNamed(context, '/admin-dashboard');
+              }
+            },
+          ),
+        ));
+      }
 
       // Reset form
       setState(() {
@@ -264,7 +278,9 @@ class _ManualOrderCreationState extends State<ManualOrderCreation>
         errorMessage = 'Erro ao gerar número do pedido. Tente novamente.';
       } else if (e.toString().contains('auth')) {
         errorMessage = 'Sessão expirou. Faça login novamente.';
-        Navigator.pushReplacementNamed(context, '/admin-login');
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/admin-login');
+        }
         return;
       } else {
         errorMessage =

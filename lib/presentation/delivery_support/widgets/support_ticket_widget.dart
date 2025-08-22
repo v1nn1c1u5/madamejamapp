@@ -10,12 +10,12 @@ class SupportTicketWidget extends StatelessWidget {
   final VoidCallback? onAssign;
 
   const SupportTicketWidget({
-    Key? key,
+    super.key,
     required this.ticket,
     this.onTap,
     this.onResolve,
     this.onAssign,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -274,3 +274,5 @@ class SupportTicketWidget extends StatelessWidget {
     }
   }
 }
+
+

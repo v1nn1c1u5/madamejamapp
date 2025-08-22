@@ -9,7 +9,7 @@ import './widgets/registration_header_widget.dart';
 import './widgets/success_message_widget.dart';
 
 class CustomerRegistration extends StatefulWidget {
-  const CustomerRegistration({Key? key}) : super(key: key);
+  const CustomerRegistration({super.key});
 
   @override
   State<CustomerRegistration> createState() => _CustomerRegistrationState();

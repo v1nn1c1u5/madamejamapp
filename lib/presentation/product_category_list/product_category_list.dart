@@ -11,7 +11,7 @@ import './widgets/skeleton_card_widget.dart';
 import './widgets/sort_bottom_sheet_widget.dart';
 
 class ProductCategoryList extends StatefulWidget {
-  const ProductCategoryList({Key? key}) : super(key: key);
+  const ProductCategoryList({super.key});
 
   @override
   State<ProductCategoryList> createState() => _ProductCategoryListState();
@@ -21,14 +21,13 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  String _selectedCategory = 'Pães Pequenos';
+  final String _selectedCategory = 'Pães Pequenos';
   String _currentSort = 'relevance';
   String _searchQuery = '';
   RangeValues _priceRange = const RangeValues(0, 200);
   bool _showAvailableOnly = false;
   bool _isLoading = false;
   bool _isLoadingMore = false;
-  int _currentPage = 1;
   final int _itemsPerPage = 10;
 
   // Mock data for bakery products
@@ -204,9 +203,10 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
   }
 
   void _loadMoreProducts() {
-    if (_isLoadingMore || _displayedProducts.length >= _filteredProducts.length)
+    if (_isLoadingMore ||
+        _displayedProducts.length >= _filteredProducts.length) {
       return;
-
+    }
     setState(() {
       _isLoadingMore = true;
     });
@@ -270,7 +270,6 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
     setState(() {
       _filteredProducts = filtered;
       _displayedProducts = filtered.take(_itemsPerPage).toList();
-      _currentPage = 1;
     });
   }
 

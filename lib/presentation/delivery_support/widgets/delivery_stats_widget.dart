@@ -7,9 +7,9 @@ class DeliveryStatsWidget extends StatelessWidget {
   final List<Map<String, dynamic>> deliveries;
 
   const DeliveryStatsWidget({
-    Key? key,
+    super.key,
     required this.deliveries,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -198,3 +198,5 @@ class DeliveryStatsWidget extends StatelessWidget {
     };
   }
 }
+
+

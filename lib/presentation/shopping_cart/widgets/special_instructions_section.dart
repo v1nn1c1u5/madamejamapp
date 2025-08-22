@@ -8,10 +8,10 @@ class SpecialInstructionsSection extends StatefulWidget {
   final Function(String) onInstructionsChanged;
 
   const SpecialInstructionsSection({
-    Key? key,
+    super.key,
     this.instructions,
     required this.onInstructionsChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<SpecialInstructionsSection> createState() =>
@@ -83,7 +83,7 @@ class _SpecialInstructionsSectionState
             onChanged: widget.onInstructionsChanged,
             decoration: InputDecoration(
               hintText: 'Ex: Entregar no portão, apartamento no 3º andar...',
-              counterText: '${_controller.text.length}/$maxCharacters',
+              counterText: '$_controller.text.length/$maxCharacters',
               counterStyle: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                 color: _controller.text.length > maxCharacters * 0.8
                     ? AppTheme.lightTheme.colorScheme.error

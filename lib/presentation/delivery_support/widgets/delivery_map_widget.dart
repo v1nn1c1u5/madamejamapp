@@ -8,10 +8,10 @@ class DeliveryMapWidget extends StatefulWidget {
   final Function(Map<String, dynamic>) onDeliveryTap;
 
   const DeliveryMapWidget({
-    Key? key,
+    super.key,
     required this.deliveries,
     required this.onDeliveryTap,
-  }) : super(key: key);
+  });
 
   @override
   State<DeliveryMapWidget> createState() => _DeliveryMapWidgetState();
@@ -472,3 +472,5 @@ class _DeliveryMapWidgetState extends State<DeliveryMapWidget> {
     }
   }
 }
+
+

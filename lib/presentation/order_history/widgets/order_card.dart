@@ -12,14 +12,14 @@ class OrderCard extends StatelessWidget {
   final VoidCallback? onWriteReview;
 
   const OrderCard({
-    Key? key,
+    super.key,
     required this.order,
     required this.onViewDetails,
     required this.onReorder,
     this.onTrackDelivery,
     this.onContactSupport,
     this.onWriteReview,
-  }) : super(key: key);
+  });
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {

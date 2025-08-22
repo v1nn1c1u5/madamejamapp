@@ -7,9 +7,9 @@ class EmptyCartWidget extends StatelessWidget {
   final VoidCallback onContinueShopping;
 
   const EmptyCartWidget({
-    Key? key,
+    super.key,
     required this.onContinueShopping,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

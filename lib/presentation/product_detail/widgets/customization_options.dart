@@ -8,10 +8,10 @@ class CustomizationOptions extends StatefulWidget {
   final Function(Map<String, dynamic>) onCustomizationChanged;
 
   const CustomizationOptions({
-    Key? key,
+    super.key,
     required this.options,
     required this.onCustomizationChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomizationOptions> createState() => _CustomizationOptionsState();
@@ -65,7 +65,6 @@ class _CustomizationOptionsState extends State<CustomizationOptions> {
           SizedBox(height: 2.h),
           ...widget.options.map<Widget>((option) {
             final String title = option['title'] as String? ?? '';
-            final String type = option['type'] as String? ?? 'text';
             final bool isRequired = option['required'] as bool? ?? false;
             final bool isExpanded = _expandedSections[title] ?? false;
 
@@ -150,7 +149,7 @@ class _CustomizationOptionsState extends State<CustomizationOptions> {
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );

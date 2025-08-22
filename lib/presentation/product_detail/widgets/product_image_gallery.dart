@@ -8,10 +8,10 @@ class ProductImageGallery extends StatefulWidget {
   final String productName;
 
   const ProductImageGallery({
-    Key? key,
+    super.key,
     required this.images,
     required this.productName,
-  }) : super(key: key);
+  });
 
   @override
   State<ProductImageGallery> createState() => _ProductImageGalleryState();
@@ -29,7 +29,7 @@ class _ProductImageGalleryState extends State<ProductImageGallery> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 45.h,
       width: double.infinity,
       child: Stack(
@@ -46,7 +46,7 @@ class _ProductImageGalleryState extends State<ProductImageGallery> {
               return GestureDetector(
                 onTap: () => _showFullScreenImage(context, index),
                 child: Hero(
-                  tag: 'product_image_${widget.productName}_$index',
+                  tag: 'product_image_$widget.productName}_$index',
                   child: CustomImageWidget(
                     imageUrl: widget.images[index],
                     width: double.infinity,
@@ -116,11 +116,10 @@ class _FullScreenImageViewer extends StatefulWidget {
   final String productName;
 
   const _FullScreenImageViewer({
-    Key? key,
     required this.images,
     required this.initialIndex,
     required this.productName,
-  }) : super(key: key);
+  });
 
   @override
   State<_FullScreenImageViewer> createState() => _FullScreenImageViewerState();

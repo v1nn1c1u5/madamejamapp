@@ -8,10 +8,10 @@ class CalendarWidget extends StatefulWidget {
   final Function(DateTime) onDateSelected;
 
   const CalendarWidget({
-    Key? key,
+    super.key,
     required this.orderDensity,
     required this.onDateSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<CalendarWidget> createState() => _CalendarWidgetState();
@@ -298,3 +298,5 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     return '${months[date.month - 1]} ${date.year}';
   }
 }
+
+

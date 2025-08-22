@@ -16,7 +16,6 @@ class ProductCatalogHome extends StatefulWidget {
 class _ProductCatalogHomeState extends State<ProductCatalogHome> {
   int _currentTabIndex = 0;
   int _cartItemCount = 3;
-  bool _isRefreshing = false;
 
   // Mock data for featured products in hero carousel
   final List<Map<String, dynamic>> _heroFeaturedProducts = [
@@ -104,16 +103,8 @@ class _ProductCatalogHomeState extends State<ProductCatalogHome> {
   ];
 
   Future<void> _handleRefresh() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-
     // Simulate refresh delay
     await Future.delayed(const Duration(seconds: 1));
-
-    setState(() {
-      _isRefreshing = false;
-    });
   }
 
   void _onCategoryTap(Map<String, dynamic> category) {

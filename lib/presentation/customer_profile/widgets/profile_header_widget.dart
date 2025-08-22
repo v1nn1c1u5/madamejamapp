@@ -9,11 +9,11 @@ class ProfileHeaderWidget extends StatelessWidget {
   final VoidCallback onEditPressed;
 
   const ProfileHeaderWidget({
-    Key? key,
+    super.key,
     required this.customerName,
     this.profileImageUrl,
     required this.onEditPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -119,3 +119,5 @@ class ProfileHeaderWidget extends StatelessWidget {
     );
   }
 }
+
+

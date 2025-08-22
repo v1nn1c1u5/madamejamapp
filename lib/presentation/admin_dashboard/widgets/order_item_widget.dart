@@ -9,11 +9,11 @@ class OrderItemWidget extends StatelessWidget {
   final VoidCallback? onContactCustomer;
 
   const OrderItemWidget({
-    Key? key,
+    super.key,
     required this.order,
     this.onStatusUpdate,
     this.onContactCustomer,
-  }) : super(key: key);
+  });
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
@@ -202,3 +202,5 @@ class OrderItemWidget extends StatelessWidget {
     );
   }
 }
+
+

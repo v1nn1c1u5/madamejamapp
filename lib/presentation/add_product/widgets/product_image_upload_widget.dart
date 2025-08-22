@@ -10,11 +10,11 @@ class ProductImageUploadWidget extends StatelessWidget {
   final Function(int) onRemoveImage;
 
   const ProductImageUploadWidget({
-    Key? key,
+    super.key,
     required this.images,
     required this.onAddImage,
     required this.onRemoveImage,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -272,3 +272,5 @@ class ProductImageUploadWidget extends StatelessWidget {
     );
   }
 }
+
+

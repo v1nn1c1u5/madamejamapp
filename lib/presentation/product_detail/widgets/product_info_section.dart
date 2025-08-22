@@ -7,9 +7,9 @@ class ProductInfoSection extends StatelessWidget {
   final Map<String, dynamic> product;
 
   const ProductInfoSection({
-    Key? key,
+    super.key,
     required this.product,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

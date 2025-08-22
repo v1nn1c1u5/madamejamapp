@@ -5,7 +5,7 @@ import '../../../core/app_export.dart';
 import '../../../theme/app_theme.dart';
 
 class CustomerSkeletonWidget extends StatefulWidget {
-  const CustomerSkeletonWidget({Key? key}) : super(key: key);
+  const CustomerSkeletonWidget({super.key});
 
   @override
   State<CustomerSkeletonWidget> createState() => _CustomerSkeletonWidgetState();
