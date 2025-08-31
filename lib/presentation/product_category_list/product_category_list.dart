@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
+import '../../services/bakery_service.dart';
+import '../../services/cart_service.dart';
 import './widgets/empty_state_widget.dart';
 import './widgets/filter_modal_widget.dart';
 import './widgets/product_card_widget.dart';
@@ -21,149 +23,19 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  final String _selectedCategory = 'Pães Pequenos';
+  String? _selectedCategoryId;
+  String _selectedCategoryName = 'Todos';
   String _currentSort = 'relevance';
   String _searchQuery = '';
   RangeValues _priceRange = const RangeValues(0, 200);
-  bool _showAvailableOnly = false;
+  bool _showAvailableOnly = true;
   bool _isLoading = false;
   bool _isLoadingMore = false;
   final int _itemsPerPage = 10;
 
-  // Mock data for bakery products
-  final List<Map<String, dynamic>> _allProducts = [
-    {
-      "id": 1,
-      "name": "Pão Francês Artesanal",
-      "description":
-          "Pão francês tradicional feito com fermentação natural e ingredientes selecionados. Crocante por fora, macio por dentro.",
-      "price": "R\$ 0,80",
-      "priceValue": 0.80,
-      "category": "Pães Pequenos",
-      "available": true,
-      "image":
-          "https://images.pexels.com/photos/209206/pexels-photo-209206.jpeg?auto=compress&cs=tinysrgb&w=800",
-      "popularity": 95,
-    },
-    {
-      "id": 2,
-      "name": "Pão de Açúcar Integral",
-      "description":
-          "Pão doce integral com açúcar mascavo e canela. Rico em fibras e sabor único da casa.",
-      "price": "R\$ 1,20",
-      "priceValue": 1.20,
-      "category": "Pães Pequenos",
-      "available": true,
-      "image":
-          "https://images.pexels.com/photos/1775043/pexels-photo-1775043.jpeg?auto=compress&cs=tinysrgb&w=800",
-      "popularity": 88,
-    },
-    {
-      "id": 3,
-      "name": "Bolo de Chocolate Belga",
-      "description":
-          "Bolo úmido de chocolate belga com cobertura cremosa. Perfeito para ocasiões especiais.",
-      "price": "R\$ 45,00",
-      "priceValue": 45.00,
-      "category": "Bolos",
-      "available": true,
-      "image":
-          "https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=800",
-      "popularity": 92,
-    },
-    {
-      "id": 4,
-      "name": "Torta Salgada de Frango",
-      "description":
-          "Torta salgada com recheio de frango desfiado, legumes e temperos especiais da casa.",
-      "price": "R\$ 32,00",
-      "priceValue": 32.00,
-      "category": "Tortas Salgadas",
-      "available": false,
-      "image":
-          "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800",
-      "popularity": 85,
-    },
-    {
-      "id": 5,
-      "name": "Pão de Queijo Mineiro",
-      "description":
-          "Pão de queijo tradicional mineiro, feito com polvilho doce e queijo minas curado.",
-      "price": "R\$ 2,50",
-      "priceValue": 2.50,
-      "category": "Pães Pequenos",
-      "available": true,
-      "image":
-          "https://images.pexels.com/photos/4686818/pexels-photo-4686818.jpeg?auto=compress&cs=tinysrgb&w=800",
-      "popularity": 90,
-    },
-    {
-      "id": 6,
-      "name": "Bolo Red Velvet",
-      "description":
-          "Bolo red velvet com cream cheese e decoração artesanal. Uma delícia americana com toque brasileiro.",
-      "price": "R\$ 55,00",
-      "priceValue": 55.00,
-      "category": "Bolos",
-      "available": true,
-      "image":
-          "https://images.pexels.com/photos/1721932/pexels-photo-1721932.jpeg?auto=compress&cs=tinysrgb&w=800",
-      "popularity": 87,
-    },
-    {
-      "id": 7,
-      "name": "Torta de Palmito",
-      "description":
-          "Torta salgada vegetariana com palmito, queijo e ervas finas. Opção saudável e saborosa.",
-      "price": "R\$ 28,00",
-      "priceValue": 28.00,
-      "category": "Tortas Salgadas",
-      "available": true,
-      "image":
-          "https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg?auto=compress&cs=tinysrgb&w=800",
-      "popularity": 78,
-    },
-    {
-      "id": 8,
-      "name": "Pão Doce com Goiabada",
-      "description":
-          "Pão doce recheado com goiabada caseira. Tradicional sabor brasileiro em cada mordida.",
-      "price": "R\$ 3,50",
-      "priceValue": 3.50,
-      "category": "Pães Pequenos",
-      "available": false,
-      "image":
-          "https://images.pexels.com/photos/2067396/pexels-photo-2067396.jpeg?auto=compress&cs=tinysrgb&w=800",
-      "popularity": 83,
-    },
-    {
-      "id": 9,
-      "name": "Bolo de Cenoura com Chocolate",
-      "description":
-          "Clássico bolo de cenoura brasileiro com cobertura de chocolate. Receita da vovó.",
-      "price": "R\$ 38,00",
-      "priceValue": 38.00,
-      "category": "Bolos",
-      "available": true,
-      "image":
-          "https://images.pexels.com/photos/1721932/pexels-photo-1721932.jpeg?auto=compress&cs=tinysrgb&w=800",
-      "popularity": 94,
-    },
-    {
-      "id": 10,
-      "name": "Quiche Lorraine",
-      "description":
-          "Quiche francesa com bacon, queijo gruyère e creme de leite. Sofisticação em cada fatia.",
-      "price": "R\$ 35,00",
-      "priceValue": 35.00,
-      "category": "Tortas Salgadas",
-      "available": true,
-      "image":
-          "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800",
-      "popularity": 81,
-    },
-  ];
-
+  // Real data from Supabase
+  List<Map<String, dynamic>> _allProducts = [];
+  List<Map<String, dynamic>> _categories = [];
   List<Map<String, dynamic>> _filteredProducts = [];
   List<Map<String, dynamic>> _displayedProducts = [];
 
@@ -181,23 +53,142 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
     super.dispose();
   }
 
-  void _loadInitialData() {
+  Future<void> _loadInitialData() async {
     setState(() {
       _isLoading = true;
     });
 
-    // Simulate network delay
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    try {
+      final bakeryService = BakeryService.instance;
+      
+      // Load categories and products in parallel
+      final results = await Future.wait([
+        bakeryService.getProductCategories(),
+        bakeryService.getProducts(status: 'active'),
+      ]);
+
+      _categories = results[0] as List<Map<String, dynamic>>;
+      _allProducts = results[1] as List<Map<String, dynamic>>;
+
+      // Get category name from route arguments if any
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null && args['categoryId'] != null) {
+        _selectedCategoryId = args['categoryId'];
+        final category = _categories.firstWhere(
+          (cat) => cat['id'] == _selectedCategoryId,
+          orElse: () => {'name': 'Categoria'},
+        );
+        _selectedCategoryName = category['name'];
+      }
+
       _applyFilters();
-      setState(() {
-        _isLoading = false;
-      });
-    });
+    } catch (error) {
+      debugPrint('Error loading products: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar produtos: $error'),
+            backgroundColor: AppTheme.errorLight,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
+      _loadMoreProducts();
+    }
+  }
+
+  void _loadMoreProducts() {
+    if (_isLoadingMore || _displayedProducts.length >= _filteredProducts.length) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    Future.delayed(const Duration(milliseconds: 800), () {
+      final nextBatch = _filteredProducts
+          .skip(_displayedProducts.length)
+          .take(_itemsPerPage)
+          .toList();
+      
+      setState(() {
+        _displayedProducts.addAll(nextBatch);
+        _isLoadingMore = false;
+      });
+    });
+  }
+
+  void _applyFilters() {
+    List<Map<String, dynamic>> filtered = List.from(_allProducts);
+
+    // Filter by category
+    if (_selectedCategoryId != null) {
+      filtered = filtered.where((product) => 
+        product['category_id'] == _selectedCategoryId
+      ).toList();
+    }
+
+    // Filter by search query
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered.where((product) {
+        final name = product['name']?.toString().toLowerCase() ?? '';
+        final description = product['description']?.toString().toLowerCase() ?? '';
+        final query = _searchQuery.toLowerCase();
+        return name.contains(query) || description.contains(query);
+      }).toList();
+    }
+
+    // Filter by price range
+    filtered = filtered.where((product) {
+      final price = product['price'] ?? 0.0;
+      return price >= _priceRange.start && price <= _priceRange.end;
+    }).toList();
+
+    // Filter by availability
+    if (_showAvailableOnly) {
+      filtered = filtered.where((product) => 
+        product['status'] == 'active' && (product['stock_quantity'] ?? 0) > 0
+      ).toList();
+    }
+
+    // Sort products
+    switch (_currentSort) {
+      case 'price_low':
+        filtered.sort((a, b) => (a['price'] ?? 0.0).compareTo(b['price'] ?? 0.0));
+        break;
+      case 'price_high':
+        filtered.sort((a, b) => (b['price'] ?? 0.0).compareTo(a['price'] ?? 0.0));
+        break;
+      case 'name':
+        filtered.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
+        break;
+      case 'newest':
+        filtered.sort((a, b) => 
+          DateTime.parse(b['created_at'] ?? '1970-01-01')
+            .compareTo(DateTime.parse(a['created_at'] ?? '1970-01-01'))
+        );
+        break;
+      default: // relevance
+        // Keep original order or implement relevance scoring
+        break;
+    }
+
+    setState(() {
+      _filteredProducts = filtered;
+      _displayedProducts = filtered.take(_itemsPerPage).toList();
+    });
       _loadMoreProducts();
     }
   }
@@ -317,7 +308,9 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
     if (_showAvailableOnly) {
       filters.add(ProductFilterChipWidget(
         label: 'Disponíveis',
-        count: _filteredProducts.where((p) => p['available'] as bool).length,
+        count: _filteredProducts.where((p) => 
+          p['status'] == 'active' && (p['stock_quantity'] ?? 0) > 0
+        ).length,
         onRemove: () {
           setState(() {
             _showAvailableOnly = false;
@@ -348,7 +341,7 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
           ),
         ),
         title: Text(
-          _selectedCategory,
+          _selectedCategoryName,
           style: AppTheme.lightTheme.appBarTheme.titleTextStyle,
         ),
         actions: [
@@ -490,19 +483,14 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
                               product: product,
                               onViewDetails: () {
                                 HapticFeedback.lightImpact();
-                                Navigator.pushNamed(context, '/product-detail');
-                              },
-                              onAddToCart: () {
-                                HapticFeedback.mediumImpact();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        '${product['name']} adicionado ao carrinho'),
-                                    backgroundColor:
-                                        AppTheme.lightTheme.colorScheme.primary,
-                                    duration: const Duration(seconds: 2),
-                                  ),
+                                Navigator.pushNamed(
+                                  context, 
+                                  '/product-detail',
+                                  arguments: {'productId': product['id']},
                                 );
+                              },
+                              onAddToCart: () async {
+                                await _addToCart(product);
                               },
                               onFavorite: () {
                                 HapticFeedback.lightImpact();
@@ -558,5 +546,69 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
         ),
       ),
     );
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _searchQuery = '';
+      _searchController.clear();
+      _priceRange = const RangeValues(0, 200);
+      _showAvailableOnly = true;
+      _currentSort = 'relevance';
+    });
+    _applyFilters();
+  }
+
+  Future<void> _addToCart(Map<String, dynamic> product) async {
+    try {
+      HapticFeedback.mediumImpact();
+      
+      final cartService = CartService.instance;
+      final images = product['product_images'] as List<dynamic>? ?? [];
+      final primaryImage = images.isNotEmpty 
+        ? images.firstWhere(
+            (img) => img['is_primary'] == true,
+            orElse: () => images.first,
+          )['image_url']
+        : null;
+      
+      await cartService.addItem(
+        productId: product['id'],
+        name: product['name'] ?? 'Produto',
+        price: (product['price'] ?? 0.0).toDouble(),
+        imageUrl: primaryImage,
+        description: product['description'],
+        quantity: 1,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${product['name']} adicionado ao carrinho',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: AppTheme.lightTheme.colorScheme.primary,
+            duration: const Duration(seconds: 2),
+            action: SnackBarAction(
+              label: 'VER CARRINHO',
+              textColor: Colors.white,
+              onPressed: () {
+                Navigator.pushNamed(context, '/shopping-cart');
+              },
+            ),
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao adicionar ao carrinho: $error'),
+            backgroundColor: AppTheme.errorLight,
+          ),
+        );
+      }
+    }
   }
 }

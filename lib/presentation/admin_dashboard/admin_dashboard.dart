@@ -3,6 +3,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
 import '../../services/bakery_service.dart';
+import '../../services/analytics_service.dart';
 import './widgets/calendar_widget.dart';
 import './widgets/metrics_card_widget.dart';
 import './widgets/order_item_widget.dart';
@@ -27,27 +28,9 @@ class _AdminDashboardState extends State<AdminDashboard>
   List<Map<String, dynamic>> _allOrders = [];
   List<Map<String, dynamic>> _products = [];
 
-  // Mock data for revenue chart (could be enhanced with real analytics)
-  final List<Map<String, dynamic>> _chartData = [
-    {'label': 'Seg', 'value': 850.0},
-    {'label': 'Ter', 'value': 920.0},
-    {'label': 'Qua', 'value': 780.0},
-    {'label': 'Qui', 'value': 1050.0},
-    {'label': 'Sex', 'value': 1200.0},
-    {'label': 'Sáb', 'value': 1450.0},
-    {'label': 'Dom', 'value': 980.0},
-  ];
-
-  // Mock data for calendar order density (could be enhanced with real data)
-  final Map<DateTime, int> _orderDensity = {
-    DateTime(2025, 8, 10): 8,
-    DateTime(2025, 8, 11): 12,
-    DateTime(2025, 8, 12): 6,
-    DateTime(2025, 8, 13): 15,
-    DateTime(2025, 8, 14): 9,
-    DateTime(2025, 8, 15): 4,
-    DateTime(2025, 8, 16): 11,
-  };
+  // Real analytics data
+  List<Map<String, dynamic>> _chartData = [];
+  Map<DateTime, int> _orderDensity = {};
 
   @override
   void initState() {
@@ -62,18 +45,24 @@ class _AdminDashboardState extends State<AdminDashboard>
 
     try {
       final bakeryService = BakeryService.instance;
+      final analyticsService = AnalyticsService.instance;
 
-      // Load dashboard metrics
-      final metrics = await bakeryService.getDashboardMetrics();
+      // Load all data in parallel for better performance
+      final results = await Future.wait([
+        bakeryService.getDashboardMetrics(),
+        bakeryService.getOrders(limit: 5),
+        bakeryService.getOrders(limit: 50),
+        bakeryService.getProducts(limit: 20),
+        analyticsService.getRevenueChartData(period: _selectedChartPeriod.toLowerCase()),
+        analyticsService.getOrderDensity(),
+      ]);
 
-      // Load recent orders (last 5)
-      final orders = await bakeryService.getOrders(limit: 5);
-
-      // Load all orders for the orders tab
-      final allOrders = await bakeryService.getOrders(limit: 50);
-
-      // Load products
-      final products = await bakeryService.getProducts(limit: 20);
+      final metrics = results[0] as Map<String, dynamic>;
+      final orders = results[1] as List<Map<String, dynamic>>;
+      final allOrders = results[2] as List<Map<String, dynamic>>;
+      final products = results[3] as List<Map<String, dynamic>>;
+      final chartData = results[4] as List<Map<String, dynamic>>;
+      final orderDensity = results[5] as Map<DateTime, int>;
 
       // Transform metrics into display format
       final List<Map<String, dynamic>> metricsData = [
@@ -121,6 +110,8 @@ class _AdminDashboardState extends State<AdminDashboard>
         _recentOrders = orders;
         _allOrders = allOrders;
         _products = products;
+        _chartData = chartData;
+        _orderDensity = orderDensity;
         _isLoading = false;
       });
     } catch (error) {
@@ -195,10 +186,11 @@ class _AdminDashboardState extends State<AdminDashboard>
               RevenueChartWidget(
                   chartData: _chartData,
                   selectedPeriod: _selectedChartPeriod,
-                  onPeriodChanged: (period) {
+                  onPeriodChanged: (period) async {
                     setState(() {
                       _selectedChartPeriod = period;
                     });
+                    await _updateChartData();
                   }),
               SizedBox(height: 3.h),
               CalendarWidget(
@@ -452,10 +444,11 @@ class _AdminDashboardState extends State<AdminDashboard>
                       RevenueChartWidget(
                           chartData: _chartData,
                           selectedPeriod: _selectedChartPeriod,
-                          onPeriodChanged: (period) {
+                          onPeriodChanged: (period) async {
                             setState(() {
                               _selectedChartPeriod = period;
                             });
+                            await _updateChartData();
                           }),
                       SizedBox(height: 3.h),
                       _buildReportSummary(),
@@ -913,5 +906,28 @@ class _AdminDashboardState extends State<AdminDashboard>
                 SizedBox(height: 2.h),
               ]));
         });
+  }
+
+  Future<void> _updateChartData() async {
+    try {
+      final analyticsService = AnalyticsService.instance;
+      final chartData = await analyticsService.getRevenueChartData(
+        period: _selectedChartPeriod.toLowerCase(),
+      );
+      
+      setState(() {
+        _chartData = chartData;
+      });
+    } catch (error) {
+      debugPrint('Error updating chart data: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao atualizar gráfico: $error'),
+            backgroundColor: AppTheme.errorLight,
+          ),
+        );
+      }
+    }
   }
 }

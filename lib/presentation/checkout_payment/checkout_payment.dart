@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
+import '../../services/cart_service.dart';
+import '../../services/bakery_service.dart';
+import '../../services/customer_service.dart';
+import '../../services/auth_service.dart';
 import './widgets/boleto_payment_widget.dart';
 import './widgets/credit_card_form_widget.dart';
 import './widgets/order_summary_widget.dart';
@@ -20,36 +24,14 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
   String _selectedPaymentMethod = 'credit_card';
   bool _acceptTerms = false;
   bool _isProcessing = false;
+  bool _isLoading = true;
   Map<String, String> _cardData = {};
 
-  // Mock data
-  final List<Map<String, dynamic>> _cartItems = [
-    {
-      'id': 1,
-      'name': 'Pão de Açúcar Artesanal',
-      'price': 15.50,
-      'quantity': 2,
-      'image':
-          'https://images.pexels.com/photos/1775043/pexels-photo-1775043.jpeg?auto=compress&cs=tinysrgb&w=500',
-    },
-    {
-      'id': 2,
-      'name': 'Torta de Frango com Catupiry',
-      'price': 28.90,
-      'quantity': 1,
-      'image':
-          'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=500',
-    },
-    {
-      'id': 3,
-      'name': 'Bolo de Chocolate Belga',
-      'price': 45.00,
-      'quantity': 1,
-      'image':
-          'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=500',
-    },
-  ];
-
+  // Real data from services
+  List<CartItem> _cartItems = [];
+  Map<String, dynamic>? _customerData;
+  Map<String, dynamic> _orderSummary = {};
+  
   final Map<String, dynamic> _deliveryDetails = {
     'address': 'Rua das Flores, 123 - Vila Madalena',
     'building': 'Edifício Primavera',
@@ -57,11 +39,63 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
     'scheduledTime': 'Hoje, 16:30 - 17:30',
   };
 
-  double get _totalAmount {
-    return _cartItems.fold(
-        0.0,
-        (sum, item) =>
-            sum + ((item['price'] as double) * (item['quantity'] as int)));
+  double get _totalAmount => _orderSummary['total_amount'] ?? 0.0;
+  double get _subtotal => _orderSummary['subtotal'] ?? 0.0;
+  double get _deliveryFee => _orderSummary['delivery_fee'] ?? 0.0;
+  int get _totalItems => _orderSummary['total_items'] ?? 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCheckoutData();
+  }
+
+  Future<void> _loadCheckoutData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final cartService = CartService.instance;
+      final authService = AuthService.instance;
+      final customerService = CustomerService.instance;
+
+      // Get cart items
+      _cartItems = cartService.items;
+      _orderSummary = cartService.getOrderSummary();
+
+      // Check if cart is empty
+      if (_cartItems.isEmpty) {
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/shopping-cart');
+        }
+        return;
+      }
+
+      // Get customer data if user is logged in
+      if (authService.isSignedIn) {
+        final currentUser = authService.currentUser;
+        if (currentUser != null) {
+          _customerData = await customerService.getCustomerByUserProfileId(currentUser.id);
+        }
+      }
+    } catch (error) {
+      debugPrint('Error loading checkout data: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar dados do checkout: $error'),
+            backgroundColor: AppTheme.errorLight,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   void _onPaymentMethodSelected(String method) {
@@ -111,20 +145,80 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
       _isProcessing = true;
     });
 
-    // Simulate payment processing
-    await Future.delayed(const Duration(seconds: 3));
+    try {
+      final bakeryService = BakeryService.instance;
+      final cartService = CartService.instance;
+      final authService = AuthService.instance;
 
-    setState(() {
-      _isProcessing = false;
-    });
+      // Check if user is logged in
+      if (!authService.isSignedIn) {
+        throw Exception('Usuário não está logado');
+      }
 
-    if (mounted) {
-      // Simulate success
-      _showPaymentSuccess();
+      // Ensure we have customer data
+      if (_customerData == null) {
+        throw Exception('Dados do cliente não encontrados');
+      }
+
+      // Generate order number
+      final orderNumber = await bakeryService.generateOrderNumber();
+
+      // Create order
+      final orderData = {
+        'order_number': orderNumber,
+        'customer_id': _customerData!['id'],
+        'created_by': authService.currentUser!.id,
+        'status': 'pending',
+        'total_amount': _totalAmount,
+        'discount_amount': 0.0,
+        'tax_amount': 0.0,
+        'payment_method': _selectedPaymentMethod,
+        'payment_status': 'pending',
+        'delivery_date': DateTime.now().add(const Duration(days: 1)).toIso8601String().split('T')[0],
+        'delivery_address': _deliveryDetails['address'],
+        'special_instructions': null,
+      };
+
+      final createdOrder = await bakeryService.createOrder(orderData);
+
+      // Add order items
+      for (final cartItem in _cartItems) {
+        await bakeryService.addOrderItem(
+          createdOrder['id'],
+          cartItem.productId,
+          cartItem.quantity,
+          cartItem.price,
+        );
+      }
+
+      // Clear cart after successful order creation
+      await cartService.clearCart();
+
+      setState(() {
+        _isProcessing = false;
+      });
+
+      if (mounted) {
+        _showPaymentSuccess(orderNumber);
+      }
+    } catch (error) {
+      debugPrint('Error processing payment: $error');
+      setState(() {
+        _isProcessing = false;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao processar pagamento: $error'),
+            backgroundColor: AppTheme.errorLight,
+          ),
+        );
+      }
     }
   }
 
-  void _showPaymentSuccess() {
+  void _showPaymentSuccess(String orderNumber) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -156,7 +250,7 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
             ),
             SizedBox(height: 2.h),
             Text(
-              'Seu pedido #MJ${DateTime.now().millisecondsSinceEpoch.toString().substring(8)} foi confirmado.',
+              'Seu pedido $orderNumber foi confirmado.',
               style: AppTheme.lightTheme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
@@ -246,17 +340,34 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(4.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Order Summary
-            OrderSummaryWidget(
-              cartItems: _cartItems,
-              deliveryDetails: _deliveryDetails,
-              totalAmount: _totalAmount,
-            ),
+      body: _isLoading
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Carregando dados do checkout...'),
+                ],
+              ),
+            )
+          : SingleChildScrollView(
+              padding: EdgeInsets.all(4.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Order Summary
+                  OrderSummaryWidget(
+                    cartItems: _cartItems.map((item) => {
+                      'id': item.id,
+                      'name': item.name,
+                      'price': item.price,
+                      'quantity': item.quantity,
+                      'image': item.imageUrl ?? '',
+                    }).toList(),
+                    deliveryDetails: _deliveryDetails,
+                    totalAmount: _totalAmount,
+                  ),
 
             SizedBox(height: 3.h),
 
@@ -344,57 +455,59 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
               ),
             ),
 
-            SizedBox(height: 4.h),
 
-            // Payment Button
-            SizedBox(
-              width: double.infinity,
-              height: 6.h,
-              child: ElevatedButton(
-                onPressed: _isProcessing ? null : _processPayment,
-                child: _isProcessing
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                AppTheme.lightTheme.colorScheme.onPrimary,
+
+                  SizedBox(height: 4.h),
+
+                  // Payment Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 6.h,
+                    child: ElevatedButton(
+                      onPressed: _isProcessing ? null : _processPayment,
+                      child: _isProcessing
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppTheme.lightTheme.colorScheme.onPrimary,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 3.w),
+                                const Text('Processando...'),
+                              ],
+                            )
+                          : Text(
+                              'Confirmar Pagamento - R\$ ${_totalAmount.toStringAsFixed(2).replaceAll('.', ',')}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ),
-                          SizedBox(width: 3.w),
-                          const Text('Processando...'),
-                        ],
-                      )
-                    : Text(
-                        'Confirmar Pagamento - R\$ ${_totalAmount.toStringAsFixed(2).replaceAll('.', ',')}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 2.h),
+
+                  // Footer Info
+                  Text(
+                    'Ao confirmar o pagamento, você concorda com nossos termos e condições. O pedido será processado imediatamente.',
+                    style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                      color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  SizedBox(height: 4.h),
+                ],
               ),
             ),
-
-            SizedBox(height: 2.h),
-
-            // Footer Info
-            Text(
-              'Ao confirmar o pagamento, você concorda com nossos termos e condições. O pedido será processado imediatamente.',
-              style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-                color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-
-            SizedBox(height: 4.h),
-          ],
-        ),
-      ),
     );
   }
 }

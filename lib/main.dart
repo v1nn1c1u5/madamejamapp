@@ -6,6 +6,7 @@ import 'package:sizer/sizer.dart';
 import '../core/app_export.dart';
 import '../widgets/custom_error_widget.dart';
 import './services/supabase_service.dart';
+import './services/cart_service.dart';
 
 void main() async {
   // Platform detection for better debugging
@@ -41,6 +42,18 @@ void main() async {
     debugPrint('Error: $e');
     debugPrint('Stack: $stackTrace');
     debugPrint('========================================');
+  }
+
+  // Initialize CartService
+  try {
+    debugPrint('=== INITIALIZING CART SERVICE ===');
+    await CartService.instance.initialize();
+    debugPrint('=== CART SERVICE INITIALIZED SUCCESSFULLY ===');
+  } catch (e, stackTrace) {
+    debugPrint('=== CART SERVICE INITIALIZATION FAILED ===');
+    debugPrint('Error: $e');
+    debugPrint('Stack: $stackTrace');
+    debugPrint('=========================================');
   }
 
   // 🚨 CRITICAL: Custom error handling - DO NOT REMOVE
