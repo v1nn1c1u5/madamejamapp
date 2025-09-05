@@ -53,7 +53,8 @@ class _AdminDashboardState extends State<AdminDashboard>
         bakeryService.getOrders(limit: 5),
         bakeryService.getOrders(limit: 50),
         bakeryService.getProducts(limit: 20),
-        analyticsService.getRevenueChartData(period: _selectedChartPeriod.toLowerCase()),
+        analyticsService.getRevenueChartData(
+            period: _selectedChartPeriod.toLowerCase()),
         analyticsService.getOrderDensity(),
       ]);
 
@@ -63,6 +64,13 @@ class _AdminDashboardState extends State<AdminDashboard>
       final products = results[3] as List<Map<String, dynamic>>;
       final chartData = results[4] as List<Map<String, dynamic>>;
       final orderDensity = results[5] as Map<DateTime, int>;
+
+      // Debug logs to check what data is being loaded
+      debugPrint('Dashboard Debug - Orders loaded: ${orders.length}');
+      debugPrint('Dashboard Debug - All Orders loaded: ${allOrders.length}');
+      if (allOrders.isNotEmpty) {
+        debugPrint('Dashboard Debug - First order: ${allOrders.first}');
+      }
 
       // Transform metrics into display format
       final List<Map<String, dynamic>> metricsData = [
@@ -239,6 +247,13 @@ class _AdminDashboardState extends State<AdminDashboard>
                               style: AppTheme.lightTheme.textTheme.bodyLarge
                                   ?.copyWith(
                                       color: AppTheme.textSecondaryLight)),
+                          SizedBox(height: 1.h),
+                          Text(
+                              'Os pedidos aparecerão aqui quando forem realizados',
+                              style: AppTheme.lightTheme.textTheme.bodySmall
+                                  ?.copyWith(
+                                      color: AppTheme.textSecondaryLight),
+                              textAlign: TextAlign.center),
                         ]))
                   : ListView.builder(
                       padding: EdgeInsets.symmetric(horizontal: 4.w),
@@ -263,10 +278,12 @@ class _AdminDashboardState extends State<AdminDashboard>
           Container(
               padding: EdgeInsets.all(4.w),
               child: Row(children: [
-                Text('Gestão de Produtos',
-                    style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700, fontSize: 18.sp)),
-                const Spacer(),
+                Expanded(
+                  child: Text('Gestão de Produtos',
+                      style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700, fontSize: 18.sp)),
+                ),
+                SizedBox(width: 2.w),
                 ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pushNamed(context, '/add-product');
@@ -274,14 +291,18 @@ class _AdminDashboardState extends State<AdminDashboard>
                     icon: CustomIconWidget(
                         iconName: 'add',
                         color: AppTheme.lightTheme.colorScheme.surface,
-                        size: 20),
-                    label: Text('Novo Produto',
-                        style: AppTheme.lightTheme.textTheme.bodyMedium
+                        size: 16),
+                    label: Text('Novo',
+                        style: AppTheme.lightTheme.textTheme.bodySmall
                             ?.copyWith(
                                 color: AppTheme.lightTheme.colorScheme.surface,
-                                fontWeight: FontWeight.w600)),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 11.sp)),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.lightTheme.primaryColor)),
+                        backgroundColor: AppTheme.lightTheme.primaryColor,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 3.w, vertical: 1.h),
+                        minimumSize: Size(0, 5.h))),
               ])),
           Expanded(
               child: _products.isEmpty
@@ -298,14 +319,21 @@ class _AdminDashboardState extends State<AdminDashboard>
                               style: AppTheme.lightTheme.textTheme.bodyLarge
                                   ?.copyWith(
                                       color: AppTheme.textSecondaryLight)),
+                          SizedBox(height: 1.h),
+                          Text('Clique no botão "Novo" para adicionar produtos',
+                              style: AppTheme.lightTheme.textTheme.bodySmall
+                                  ?.copyWith(
+                                      color: AppTheme.textSecondaryLight),
+                              textAlign: TextAlign.center),
                         ]))
                   : GridView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 4.w),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          crossAxisSpacing: 4.w,
+                          crossAxisSpacing: 3.w,
                           mainAxisSpacing: 2.h,
-                          childAspectRatio: 0.7),
+                          childAspectRatio: 0.75),
                       itemCount: _products.length,
                       itemBuilder: (context, index) {
                         final product = _products[index];
@@ -348,68 +376,61 @@ class _AdminDashboardState extends State<AdminDashboard>
                           child: CustomIconWidget(
                               iconName: 'image',
                               color: AppTheme.textSecondaryLight,
-                              size: 48)))),
-          Expanded(
-              flex: 2,
-              child: Padding(
-                  padding: EdgeInsets.all(3.w),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(product['name'] ?? 'Produto sem nome',
-                                  style: AppTheme.lightTheme.textTheme.bodyLarge
-                                      ?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 12.sp),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis),
-                              SizedBox(height: 1.h),
-                              Text(
-                                  'R\$ ${(product['price'] ?? 0.0).toStringAsFixed(2)}',
-                                  style: AppTheme
-                                      .lightTheme.textTheme.bodyMedium
-                                      ?.copyWith(
-                                          color:
-                                              AppTheme.lightTheme.primaryColor,
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 11.sp)),
-                            ]),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 2.w, vertical: 0.5.h),
-                                  decoration: BoxDecoration(
-                                      color: (product['status'] == 'active'
-                                              ? AppTheme.primaryLight
-                                              : AppTheme.errorLight)
-                                          .withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(12)),
-                                  child: Text(
-                                      product['status'] == 'active'
-                                          ? 'Ativo'
-                                          : 'Inativo',
-                                      style: AppTheme
-                                          .lightTheme.textTheme.bodySmall
-                                          ?.copyWith(
-                                              color:
-                                                  product['status'] == 'active'
-                                                      ? AppTheme.primaryLight
-                                                      : AppTheme.errorLight,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 9.sp))),
-                              Text('Est: ${product['stock_quantity'] ?? 0}',
-                                  style: AppTheme.lightTheme.textTheme.bodySmall
-                                      ?.copyWith(
-                                          color: AppTheme.textSecondaryLight,
-                                          fontSize: 9.sp)),
-                            ]),
-                      ]))),
+                              size: 32)))),
+          Container(
+              padding: EdgeInsets.all(2.5.w),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(product['name'] ?? 'Produto sem nome',
+                        style: AppTheme.lightTheme.textTheme.bodyMedium
+                            ?.copyWith(
+                                fontWeight: FontWeight.w600, fontSize: 11.sp),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis),
+                    SizedBox(height: 0.5.h),
+                    Text('R\$ ${(product['price'] ?? 0.0).toStringAsFixed(2)}',
+                        style: AppTheme.lightTheme.textTheme.bodyMedium
+                            ?.copyWith(
+                                color: AppTheme.lightTheme.primaryColor,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 10.sp)),
+                    SizedBox(height: 1.h),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 1.5.w, vertical: 0.3.h),
+                                decoration: BoxDecoration(
+                                    color: (product['status'] == 'active'
+                                            ? AppTheme.primaryLight
+                                            : AppTheme.errorLight)
+                                        .withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: Text(
+                                    product['status'] == 'active'
+                                        ? 'Ativo'
+                                        : 'Inativo',
+                                    style: AppTheme
+                                        .lightTheme.textTheme.bodySmall
+                                        ?.copyWith(
+                                            color: product['status'] == 'active'
+                                                ? AppTheme.primaryLight
+                                                : AppTheme.errorLight,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 8.sp))),
+                          ),
+                          SizedBox(width: 1.w),
+                          Text('Est: ${product['stock_quantity'] ?? 0}',
+                              style: AppTheme.lightTheme.textTheme.bodySmall
+                                  ?.copyWith(
+                                      color: AppTheme.textSecondaryLight,
+                                      fontSize: 8.sp)),
+                        ]),
+                  ])),
         ]));
   }
 
@@ -914,7 +935,7 @@ class _AdminDashboardState extends State<AdminDashboard>
       final chartData = await analyticsService.getRevenueChartData(
         period: _selectedChartPeriod.toLowerCase(),
       );
-      
+
       setState(() {
         _chartData = chartData;
       });

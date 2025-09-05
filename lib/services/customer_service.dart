@@ -126,6 +126,47 @@ class CustomerService {
     }
   }
 
+  // Update customer user profile (name, email, status)
+  Future<void> updateCustomerProfile({
+    required String userProfileId,
+    String? fullName,
+    String? email,
+    bool? isActive,
+  }) async {
+    try {
+      Map<String, dynamic> updateData = {};
+
+      if (fullName != null && fullName.isNotEmpty) {
+        updateData['full_name'] = fullName;
+      }
+      if (email != null && email.isNotEmpty) {
+        updateData['email'] = email;
+      }
+      if (isActive != null) {
+        updateData['is_active'] = isActive;
+      }
+
+      print(
+          'Updating user_profiles with data: $updateData for ID: $userProfileId');
+
+      if (updateData.isEmpty) {
+        print('No profile data to update');
+        return;
+      }
+
+      final response = await _client
+          .from('user_profiles')
+          .update(updateData)
+          .eq('id', userProfileId)
+          .select();
+
+      print('Profile update response: $response');
+    } catch (error) {
+      print('Error in updateCustomerProfile: $error');
+      throw Exception('Erro ao atualizar perfil do cliente: $error');
+    }
+  }
+
   // Get all customers (admin only)
   Future<List<Map<String, dynamic>>> getAllCustomers({
     int? limit,
@@ -136,13 +177,7 @@ class CustomerService {
     bool ascending = false,
   }) async {
     try {
-      // Debug auth context
-      final currentUser = _client.auth.currentUser;
-      // ignore: avoid_print
-      print(
-          '[CustomerService] getAllCustomers() user=${currentUser?.email} id=${currentUser?.id}');
-
-      // Primary query with join bringing profile fields
+      // Apply filters
       var query = _client.from('customers').select('''
         id,
         user_profile_id,
@@ -184,11 +219,9 @@ class CustomerService {
       try {
         response = await query.order(orderBy!, ascending: ascending).range(
             offset ?? 0, limit != null ? (offset ?? 0) + limit - 1 : 999);
-      } on PostgrestException catch (e) {
+      } on PostgrestException {
         // Fallback: retry without join if join caused issue
         // (Helps diagnosticar problemas de relationship naming)
-        // ignore: avoid_print
-        print('[CustomerService] Primary select failed: ${e.message}');
         final fallbackQuery = _client.from('customers').select('*');
         response = await fallbackQuery
             .order(orderBy!, ascending: ascending)
@@ -196,14 +229,8 @@ class CustomerService {
                 offset ?? 0, limit != null ? (offset ?? 0) + limit - 1 : 999);
       }
 
-      // ignore: avoid_print
-      print('[CustomerService] getAllCustomers rows: ${response.length}');
-
       // If no rows, attempt alternative join syntax (using * and simpler embed)
       if (response.isEmpty) {
-        // ignore: avoid_print
-        print(
-            '[CustomerService] Primary query empty. Trying alternative join syntax...');
         try {
           final alt = await _client
               .from('customers')
@@ -214,21 +241,16 @@ class CustomerService {
               .order(orderBy, ascending: ascending)
               .range(
                   offset ?? 0, limit != null ? (offset ?? 0) + limit - 1 : 999);
-          // ignore: avoid_print
-          print('[CustomerService] Alternative join rows: ${alt.length}');
           if (alt.isNotEmpty) {
             response = alt;
           }
         } catch (e) {
-          // ignore: avoid_print
-          print('[CustomerService] Alternative join failed: $e');
+          // Alternative join failed, continue to next attempt
         }
       }
 
       // If still empty, try simplest select to rule out RLS
       if (response.isEmpty) {
-        // ignore: avoid_print
-        print('[CustomerService] Still empty. Trying base select (*).');
         try {
           final base = await _client
               .from('customers')
@@ -236,14 +258,11 @@ class CustomerService {
               .order(orderBy, ascending: ascending)
               .range(
                   offset ?? 0, limit != null ? (offset ?? 0) + limit - 1 : 999);
-          // ignore: avoid_print
-          print('[CustomerService] Base select rows: ${base.length}');
           if (base.isNotEmpty) {
             response = base;
           }
         } catch (e) {
-          // ignore: avoid_print
-          print('[CustomerService] Base select failed: $e');
+          // Base select failed as well
         }
       }
 

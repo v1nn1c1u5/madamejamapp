@@ -23,9 +23,6 @@ class CustomerCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // DEBUG: printar o objeto customer recebido
-    // ignore: avoid_print
-    print('[CustomerCardWidget] customer: $customer');
     // Fallbacks: aceitar dados flatten ou aninhados em user_profiles
     final userProfiles = customer['user_profiles'] as Map<String, dynamic>?;
     final fullName = (customer['full_name'] ?? userProfiles?['full_name'] ?? '')
@@ -89,13 +86,16 @@ class CustomerCardWidget extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 0.5.h),
-                        Text(
-                          customer['customer_code'] ?? '',
-                          style:
-                              AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-                            color: AppTheme.textSecondaryLight,
+                        if (email.isNotEmpty)
+                          Text(
+                            email,
+                            style: AppTheme.lightTheme.textTheme.bodySmall
+                                ?.copyWith(
+                              color: AppTheme.textSecondaryLight,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -132,6 +132,8 @@ class CustomerCardWidget extends StatelessWidget {
                       style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                         color: AppTheme.textSecondaryLight,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -151,6 +153,8 @@ class CustomerCardWidget extends StatelessWidget {
                       style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                         color: AppTheme.textSecondaryLight,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

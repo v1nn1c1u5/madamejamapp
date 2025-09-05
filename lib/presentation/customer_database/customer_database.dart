@@ -3,6 +3,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
 import '../../services/customer_service.dart';
+import '../customer_edit/customer_edit.dart';
 import './widgets/customer_card_widget.dart';
 import './widgets/customer_filter_widget.dart';
 import './widgets/customer_search_widget.dart';
@@ -227,7 +228,7 @@ class _CustomerDatabaseState extends State<CustomerDatabase>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$_customers.length clientes',
+                '${_customers.length} clientes',
                 style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                   fontSize: 20.sp,
@@ -235,7 +236,7 @@ class _CustomerDatabaseState extends State<CustomerDatabase>
                 ),
               ),
               Text(
-                '$_filteredCustomers.length visíveis',
+                '${_filteredCustomers.length} visíveis',
                 style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
                   color: AppTheme.textSecondaryLight,
                   fontSize: 12.sp,
@@ -663,15 +664,20 @@ class _CustomerDatabaseState extends State<CustomerDatabase>
     );
   }
 
-  void _editCustomer(Map<String, dynamic> customer) {
-    final userProfile =
-        customer['user_profiles'] as Map<String, dynamic>? ?? {};
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Editando ${userProfile['full_name'] ?? 'Cliente'}'),
+  void _editCustomer(Map<String, dynamic> customer) async {
+    Navigator.pop(context); // Close the modal if open
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CustomerEdit(customer: customer),
       ),
     );
+
+    // If the edit was successful, reload the customer list
+    if (result == true) {
+      _loadCustomers();
+    }
   }
 
   void _createOrder(Map<String, dynamic> customer) {

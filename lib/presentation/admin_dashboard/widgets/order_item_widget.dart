@@ -17,13 +17,17 @@ class OrderItemWidget extends StatelessWidget {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'novo':
+      case 'pending':
         return const Color(0xFFFFA726); // Orange/Yellow
-      case 'preparando':
+      case 'confirmed':
         return const Color(0xFF42A5F5); // Blue
-      case 'pronto':
+      case 'preparing':
+        return const Color(0xFF42A5F5); // Blue
+      case 'ready':
         return AppTheme.successLight; // Green
-      case 'problema':
+      case 'delivered':
+        return AppTheme.successLight; // Green
+      case 'cancelled':
         return AppTheme.errorLight; // Red
       default:
         return AppTheme.textSecondaryLight;
@@ -32,25 +36,53 @@ class OrderItemWidget extends StatelessWidget {
 
   String _getStatusText(String status) {
     switch (status.toLowerCase()) {
-      case 'novo':
-        return 'Novo';
-      case 'preparando':
+      case 'pending':
+        return 'Pendente';
+      case 'confirmed':
+        return 'Confirmado';
+      case 'preparing':
         return 'Preparando';
-      case 'pronto':
+      case 'ready':
         return 'Pronto';
-      case 'problema':
-        return 'Problema';
+      case 'delivered':
+        return 'Entregue';
+      case 'cancelled':
+        return 'Cancelado';
       default:
         return status;
     }
   }
 
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}min atrás';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h atrás';
+    } else {
+      return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final String customerName = order['customerName'] ?? 'Cliente';
-    final String orderValue = order['value'] ?? 'R\$ 0,00';
-    final String status = order['status'] ?? 'novo';
-    final String time = order['time'] ?? '00:00';
+    // Map real database structure to widget display
+    final customerData = order['customers'];
+    final userProfile = customerData?['user_profiles'];
+
+    final String customerName =
+        userProfile?['full_name'] ?? customerData?['full_name'] ?? 'Cliente';
+    final double totalAmount = (order['total_amount'] ?? 0.0).toDouble();
+    final String orderValue = 'R\$ ${totalAmount.toStringAsFixed(2)}';
+    final String status = order['status'] ?? 'pending';
+
+    // Format creation time
+    final String time = order['created_at'] != null
+        ? _formatTime(DateTime.parse(order['created_at']))
+        : '00:00';
+
     final String orderId = order['id']?.toString() ?? '0';
 
     return Dismissible(
@@ -202,5 +234,3 @@ class OrderItemWidget extends StatelessWidget {
     );
   }
 }
-
-

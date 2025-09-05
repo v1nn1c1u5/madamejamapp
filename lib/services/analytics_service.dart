@@ -51,11 +51,13 @@ class AnalyticsService {
           return await _getDailyRevenueData(startDate, endDate);
         case 'semanal':
         case 'weekly':
-          startDate = fromDate ?? DateTime(now.year, now.month, now.day - 42); // 6 weeks
+          startDate = fromDate ??
+              DateTime(now.year, now.month, now.day - 42); // 6 weeks
           return await _getWeeklyRevenueData(startDate, endDate);
         case 'mensal':
         case 'monthly':
-          startDate = fromDate ?? DateTime(now.year - 1, now.month, now.day); // 12 months
+          startDate = fromDate ??
+              DateTime(now.year - 1, now.month, now.day); // 12 months
           return await _getMonthlyRevenueData(startDate, endDate);
         default:
           startDate = fromDate ?? DateTime(now.year, now.month, now.day - 6);
@@ -77,16 +79,17 @@ class AnalyticsService {
         .order('created_at');
 
     final orders = List<Map<String, dynamic>>.from(response);
-    
+
     // Group by day
     Map<String, double> dailyRevenue = {};
     final weekdays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-    
+
     // Initialize with zeros
     for (int i = 0; i <= endDate.difference(startDate).inDays; i++) {
       final date = startDate.add(Duration(days: i));
       final weekday = weekdays[(date.weekday - 1) % 7];
-      final key = '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')} ($weekday)';
+      final key =
+          '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')} ($weekday)';
       dailyRevenue[key] = 0.0;
     }
 
@@ -94,13 +97,18 @@ class AnalyticsService {
     for (final order in orders) {
       final orderDate = DateTime.parse(order['created_at']);
       final weekday = weekdays[(orderDate.weekday - 1) % 7];
-      final key = '${orderDate.day.toString().padLeft(2, '0')}/${orderDate.month.toString().padLeft(2, '0')} ($weekday)';
-      dailyRevenue[key] = (dailyRevenue[key] ?? 0.0) + (order['total_amount'] ?? 0.0);
+      final key =
+          '${orderDate.day.toString().padLeft(2, '0')}/${orderDate.month.toString().padLeft(2, '0')} ($weekday)';
+      dailyRevenue[key] =
+          (dailyRevenue[key] ?? 0.0) + (order['total_amount'] ?? 0.0);
     }
 
     return dailyRevenue.entries
         .map((entry) => {
-              'label': entry.key.split(' ')[1].replaceAll('(', '').replaceAll(')', ''),
+              'label': entry.key
+                  .split(' ')[1]
+                  .replaceAll('(', '')
+                  .replaceAll(')', ''),
               'value': entry.value,
             })
         .toList();
@@ -117,16 +125,18 @@ class AnalyticsService {
         .order('created_at');
 
     final orders = List<Map<String, dynamic>>.from(response);
-    
+
     // Group by week
     Map<String, double> weeklyRevenue = {};
 
     for (final order in orders) {
       final orderDate = DateTime.parse(order['created_at']);
-      final weekStart = orderDate.subtract(Duration(days: orderDate.weekday - 1));
+      final weekStart =
+          orderDate.subtract(Duration(days: orderDate.weekday - 1));
       final weekKey = 'Sem ${weekStart.day}/${weekStart.month}';
-      
-      weeklyRevenue[weekKey] = (weeklyRevenue[weekKey] ?? 0.0) + (order['total_amount'] ?? 0.0);
+
+      weeklyRevenue[weekKey] =
+          (weeklyRevenue[weekKey] ?? 0.0) + (order['total_amount'] ?? 0.0);
     }
 
     return weeklyRevenue.entries
@@ -148,16 +158,30 @@ class AnalyticsService {
         .order('created_at');
 
     final orders = List<Map<String, dynamic>>.from(response);
-    
+
     // Group by month
     Map<String, double> monthlyRevenue = {};
-    final months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    final months = [
+      'Jan',
+      'Fev',
+      'Mar',
+      'Abr',
+      'Mai',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Set',
+      'Out',
+      'Nov',
+      'Dez'
+    ];
 
     for (final order in orders) {
       final orderDate = DateTime.parse(order['created_at']);
       final monthKey = '${months[orderDate.month - 1]} ${orderDate.year}';
-      
-      monthlyRevenue[monthKey] = (monthlyRevenue[monthKey] ?? 0.0) + (order['total_amount'] ?? 0.0);
+
+      monthlyRevenue[monthKey] =
+          (monthlyRevenue[monthKey] ?? 0.0) + (order['total_amount'] ?? 0.0);
     }
 
     return monthlyRevenue.entries
@@ -186,13 +210,14 @@ class AnalyticsService {
           .order('created_at');
 
       final orders = List<Map<String, dynamic>>.from(response);
-      
+
       Map<DateTime, int> orderDensity = {};
 
       for (final order in orders) {
         final orderDate = DateTime.parse(order['created_at']);
-        final dateKey = DateTime(orderDate.year, orderDate.month, orderDate.day);
-        
+        final dateKey =
+            DateTime(orderDate.year, orderDate.month, orderDate.day);
+
         orderDensity[dateKey] = (orderDensity[dateKey] ?? 0) + 1;
       }
 
@@ -222,6 +247,9 @@ class AnalyticsService {
       return List<Map<String, dynamic>>.from(response);
     } catch (error) {
       // Fallback to manual calculation if function doesn't exist
+      final now = DateTime.now();
+      final startDate = fromDate ?? DateTime(now.year, now.month, 1);
+      final endDate = toDate ?? now;
       return await _getTopSellingProductsFallback(limit, startDate, endDate);
     }
   }
@@ -238,7 +266,7 @@ class AnalyticsService {
         .lte('created_at', endDate.toIso8601String());
 
     final items = List<Map<String, dynamic>>.from(response);
-    
+
     Map<String, Map<String, dynamic>> productSales = {};
 
     for (final item in items) {
@@ -246,7 +274,7 @@ class AnalyticsService {
       if (product != null) {
         final productId = product['id'];
         final quantity = item['quantity'] ?? 0;
-        
+
         if (productSales.containsKey(productId)) {
           productSales[productId]!['total_sold'] += quantity;
         } else {
@@ -292,13 +320,15 @@ class AnalyticsService {
 
       final orders = List<Map<String, dynamic>>.from(repeatCustomersResponse);
       Map<String, int> customerOrderCount = {};
-      
+
       for (final order in orders) {
         final customerId = order['customer_id'];
-        customerOrderCount[customerId] = (customerOrderCount[customerId] ?? 0) + 1;
+        customerOrderCount[customerId] =
+            (customerOrderCount[customerId] ?? 0) + 1;
       }
 
-      final repeatCustomers = customerOrderCount.values.where((count) => count > 1).length;
+      final repeatCustomers =
+          customerOrderCount.values.where((count) => count > 1).length;
 
       return {
         'new_customers': newCustomersResponse.length,

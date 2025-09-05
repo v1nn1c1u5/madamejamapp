@@ -31,7 +31,7 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
   List<CartItem> _cartItems = [];
   Map<String, dynamic>? _customerData;
   Map<String, dynamic> _orderSummary = {};
-  
+
   final Map<String, dynamic> _deliveryDetails = {
     'address': 'Rua das Flores, 123 - Vila Madalena',
     'building': 'Edifício Primavera',
@@ -40,9 +40,6 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
   };
 
   double get _totalAmount => _orderSummary['total_amount'] ?? 0.0;
-  double get _subtotal => _orderSummary['subtotal'] ?? 0.0;
-  double get _deliveryFee => _orderSummary['delivery_fee'] ?? 0.0;
-  int get _totalItems => _orderSummary['total_items'] ?? 0;
 
   @override
   void initState() {
@@ -76,7 +73,8 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
       if (authService.isSignedIn) {
         final currentUser = authService.currentUser;
         if (currentUser != null) {
-          _customerData = await customerService.getCustomerByUserProfileId(currentUser.id);
+          _customerData =
+              await customerService.getCustomerByUserProfileId(currentUser.id);
         }
       }
     } catch (error) {
@@ -174,7 +172,10 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
         'tax_amount': 0.0,
         'payment_method': _selectedPaymentMethod,
         'payment_status': 'pending',
-        'delivery_date': DateTime.now().add(const Duration(days: 1)).toIso8601String().split('T')[0],
+        'delivery_date': DateTime.now()
+            .add(const Duration(days: 1))
+            .toIso8601String()
+            .split('T')[0],
         'delivery_address': _deliveryDetails['address'],
         'special_instructions': null,
       };
@@ -206,7 +207,7 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
       setState(() {
         _isProcessing = false;
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -358,104 +359,105 @@ class _CheckoutPaymentState extends State<CheckoutPayment> {
                 children: [
                   // Order Summary
                   OrderSummaryWidget(
-                    cartItems: _cartItems.map((item) => {
-                      'id': item.id,
-                      'name': item.name,
-                      'price': item.price,
-                      'quantity': item.quantity,
-                      'image': item.imageUrl ?? '',
-                    }).toList(),
+                    cartItems: _cartItems
+                        .map((item) => {
+                              'id': item.id,
+                              'name': item.name,
+                              'price': item.price,
+                              'quantity': item.quantity,
+                              'image': item.imageUrl ?? '',
+                            })
+                        .toList(),
                     deliveryDetails: _deliveryDetails,
                     totalAmount: _totalAmount,
                   ),
 
-            SizedBox(height: 3.h),
+                  SizedBox(height: 3.h),
 
-            // Payment Method Selection
-            PaymentMethodWidget(
-              onPaymentMethodSelected: _onPaymentMethodSelected,
-              selectedMethod: _selectedPaymentMethod,
-            ),
-
-            SizedBox(height: 3.h),
-
-            // Payment Form
-            _buildPaymentForm(),
-
-            SizedBox(height: 3.h),
-
-            // Security Badges
-            const SecurityBadgesWidget(),
-
-            SizedBox(height: 3.h),
-
-            // Terms and Conditions
-            Container(
-              padding: EdgeInsets.all(4.w),
-              decoration: BoxDecoration(
-                color: AppTheme.lightTheme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppTheme.lightTheme.colorScheme.outline
-                      .withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Checkbox(
-                    value: _acceptTerms,
-                    onChanged: (value) {
-                      setState(() {
-                        _acceptTerms = value ?? false;
-                      });
-                    },
+                  // Payment Method Selection
+                  PaymentMethodWidget(
+                    onPaymentMethodSelected: _onPaymentMethodSelected,
+                    selectedMethod: _selectedPaymentMethod,
                   ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _acceptTerms = !_acceptTerms;
-                        });
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 3.w),
-                        child: RichText(
-                          text: TextSpan(
-                            style: AppTheme.lightTheme.textTheme.bodySmall,
-                            children: [
-                              const TextSpan(text: 'Eu aceito os '),
-                              TextSpan(
-                                text: 'Termos de Uso',
-                                style: TextStyle(
-                                  color:
-                                      AppTheme.lightTheme.colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                              const TextSpan(text: ' e '),
-                              TextSpan(
-                                text: 'Política de Privacidade',
-                                style: TextStyle(
-                                  color:
-                                      AppTheme.lightTheme.colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                              const TextSpan(text: ' da Madame Jam'),
-                            ],
-                          ),
-                        ),
+
+                  SizedBox(height: 3.h),
+
+                  // Payment Form
+                  _buildPaymentForm(),
+
+                  SizedBox(height: 3.h),
+
+                  // Security Badges
+                  const SecurityBadgesWidget(),
+
+                  SizedBox(height: 3.h),
+
+                  // Terms and Conditions
+                  Container(
+                    padding: EdgeInsets.all(4.w),
+                    decoration: BoxDecoration(
+                      color: AppTheme.lightTheme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppTheme.lightTheme.colorScheme.outline
+                            .withValues(alpha: 0.3),
                       ),
                     ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Checkbox(
+                          value: _acceptTerms,
+                          onChanged: (value) {
+                            setState(() {
+                              _acceptTerms = value ?? false;
+                            });
+                          },
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _acceptTerms = !_acceptTerms;
+                              });
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.only(top: 3.w),
+                              child: RichText(
+                                text: TextSpan(
+                                  style:
+                                      AppTheme.lightTheme.textTheme.bodySmall,
+                                  children: [
+                                    const TextSpan(text: 'Eu aceito os '),
+                                    TextSpan(
+                                      text: 'Termos de Uso',
+                                      style: TextStyle(
+                                        color: AppTheme
+                                            .lightTheme.colorScheme.primary,
+                                        fontWeight: FontWeight.w600,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                    const TextSpan(text: ' e '),
+                                    TextSpan(
+                                      text: 'Política de Privacidade',
+                                      style: TextStyle(
+                                        color: AppTheme
+                                            .lightTheme.colorScheme.primary,
+                                        fontWeight: FontWeight.w600,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                    const TextSpan(text: ' da Madame Jam'),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-
-
 
                   SizedBox(height: 4.h),
 

@@ -60,18 +60,21 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
 
     try {
       final bakeryService = BakeryService.instance;
-      
+
+      // Get category name from route arguments before async operations
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
       // Load categories and products in parallel
       final results = await Future.wait([
         bakeryService.getProductCategories(),
         bakeryService.getProducts(status: 'active'),
       ]);
 
-      _categories = results[0] as List<Map<String, dynamic>>;
-      _allProducts = results[1] as List<Map<String, dynamic>>;
+      _categories = results[0];
+      _allProducts = results[1];
 
-      // Get category name from route arguments if any
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      // Process route arguments after async operations
       if (args != null && args['categoryId'] != null) {
         _selectedCategoryId = args['categoryId'];
         final category = _categories.firstWhere(
@@ -109,7 +112,8 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
   }
 
   void _loadMoreProducts() {
-    if (_isLoadingMore || _displayedProducts.length >= _filteredProducts.length) {
+    if (_isLoadingMore ||
+        _displayedProducts.length >= _filteredProducts.length) {
       return;
     }
 
@@ -122,7 +126,7 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
           .skip(_displayedProducts.length)
           .take(_itemsPerPage)
           .toList();
-      
+
       setState(() {
         _displayedProducts.addAll(nextBatch);
         _isLoadingMore = false;
@@ -135,16 +139,17 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
 
     // Filter by category
     if (_selectedCategoryId != null) {
-      filtered = filtered.where((product) => 
-        product['category_id'] == _selectedCategoryId
-      ).toList();
+      filtered = filtered
+          .where((product) => product['category_id'] == _selectedCategoryId)
+          .toList();
     }
 
     // Filter by search query
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((product) {
         final name = product['name']?.toString().toLowerCase() ?? '';
-        final description = product['description']?.toString().toLowerCase() ?? '';
+        final description =
+            product['description']?.toString().toLowerCase() ?? '';
         final query = _searchQuery.toLowerCase();
         return name.contains(query) || description.contains(query);
       }).toList();
@@ -158,103 +163,32 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
 
     // Filter by availability
     if (_showAvailableOnly) {
-      filtered = filtered.where((product) => 
-        product['status'] == 'active' && (product['stock_quantity'] ?? 0) > 0
-      ).toList();
+      filtered = filtered
+          .where((product) =>
+              product['status'] == 'active' &&
+              (product['stock_quantity'] ?? 0) > 0)
+          .toList();
     }
 
     // Sort products
     switch (_currentSort) {
       case 'price_low':
-        filtered.sort((a, b) => (a['price'] ?? 0.0).compareTo(b['price'] ?? 0.0));
+        filtered
+            .sort((a, b) => (a['price'] ?? 0.0).compareTo(b['price'] ?? 0.0));
         break;
       case 'price_high':
-        filtered.sort((a, b) => (b['price'] ?? 0.0).compareTo(a['price'] ?? 0.0));
+        filtered
+            .sort((a, b) => (b['price'] ?? 0.0).compareTo(a['price'] ?? 0.0));
         break;
       case 'name':
         filtered.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
         break;
       case 'newest':
-        filtered.sort((a, b) => 
-          DateTime.parse(b['created_at'] ?? '1970-01-01')
-            .compareTo(DateTime.parse(a['created_at'] ?? '1970-01-01'))
-        );
+        filtered.sort((a, b) => DateTime.parse(b['created_at'] ?? '1970-01-01')
+            .compareTo(DateTime.parse(a['created_at'] ?? '1970-01-01')));
         break;
       default: // relevance
         // Keep original order or implement relevance scoring
-        break;
-    }
-
-    setState(() {
-      _filteredProducts = filtered;
-      _displayedProducts = filtered.take(_itemsPerPage).toList();
-    });
-      _loadMoreProducts();
-    }
-  }
-
-  void _loadMoreProducts() {
-    if (_isLoadingMore ||
-        _displayedProducts.length >= _filteredProducts.length) {
-      return;
-    }
-    setState(() {
-      _isLoadingMore = true;
-    });
-
-    Future.delayed(const Duration(milliseconds: 800), () {
-      final nextItems = _filteredProducts
-          .skip(_displayedProducts.length)
-          .take(_itemsPerPage)
-          .toList();
-
-      setState(() {
-        _displayedProducts.addAll(nextItems);
-        _isLoadingMore = false;
-      });
-    });
-  }
-
-  void _applyFilters() {
-    List<Map<String, dynamic>> filtered = _allProducts.where((product) {
-      // Category filter
-      if (product['category'] != _selectedCategory) return false;
-
-      // Search filter
-      if (_searchQuery.isNotEmpty) {
-        final name = (product['name'] as String).toLowerCase();
-        final description = (product['description'] as String).toLowerCase();
-        final query = _searchQuery.toLowerCase();
-        if (!name.contains(query) && !description.contains(query)) return false;
-      }
-
-      // Price filter
-      final price = product['priceValue'] as double;
-      if (price < _priceRange.start || price > _priceRange.end) return false;
-
-      // Availability filter
-      if (_showAvailableOnly && !(product['available'] as bool)) return false;
-
-      return true;
-    }).toList();
-
-    // Apply sorting
-    switch (_currentSort) {
-      case 'price_low':
-        filtered.sort((a, b) =>
-            (a['priceValue'] as double).compareTo(b['priceValue'] as double));
-        break;
-      case 'price_high':
-        filtered.sort((a, b) =>
-            (b['priceValue'] as double).compareTo(a['priceValue'] as double));
-        break;
-      case 'popular':
-        filtered.sort((a, b) =>
-            (b['popularity'] as int).compareTo(a['popularity'] as int));
-        break;
-      case 'relevance':
-      default:
-        // Keep original order for relevance
         break;
     }
 
@@ -308,9 +242,10 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
     if (_showAvailableOnly) {
       filters.add(ProductFilterChipWidget(
         label: 'Disponíveis',
-        count: _filteredProducts.where((p) => 
-          p['status'] == 'active' && (p['stock_quantity'] ?? 0) > 0
-        ).length,
+        count: _filteredProducts
+            .where((p) =>
+                p['status'] == 'active' && (p['stock_quantity'] ?? 0) > 0)
+            .length,
         onRemove: () {
           setState(() {
             _showAvailableOnly = false;
@@ -484,7 +419,7 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
                               onViewDetails: () {
                                 HapticFeedback.lightImpact();
                                 Navigator.pushNamed(
-                                  context, 
+                                  context,
                                   '/product-detail',
                                   arguments: {'productId': product['id']},
                                 );
@@ -548,30 +483,19 @@ class _ProductCategoryListState extends State<ProductCategoryList> {
     );
   }
 
-  void _clearFilters() {
-    setState(() {
-      _searchQuery = '';
-      _searchController.clear();
-      _priceRange = const RangeValues(0, 200);
-      _showAvailableOnly = true;
-      _currentSort = 'relevance';
-    });
-    _applyFilters();
-  }
-
   Future<void> _addToCart(Map<String, dynamic> product) async {
     try {
       HapticFeedback.mediumImpact();
-      
+
       final cartService = CartService.instance;
       final images = product['product_images'] as List<dynamic>? ?? [];
-      final primaryImage = images.isNotEmpty 
-        ? images.firstWhere(
-            (img) => img['is_primary'] == true,
-            orElse: () => images.first,
-          )['image_url']
-        : null;
-      
+      final primaryImage = images.isNotEmpty
+          ? images.firstWhere(
+              (img) => img['is_primary'] == true,
+              orElse: () => images.first,
+            )['image_url']
+          : null;
+
       await cartService.addItem(
         productId: product['id'],
         name: product['name'] ?? 'Produto',
