@@ -4,14 +4,21 @@ import 'package:go_router/go_router.dart';
 import '../supabase/supabase_providers.dart';
 import 'go_router_refresh_stream.dart';
 import '../../features/auth/presentation/sign_in_screen.dart';
+import '../../features/auth/presentation/sign_up_screen.dart';
+import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/catalog/presentation/catalog_screen.dart';
 import '../../features/admin/presentation/admin_home_screen.dart';
 
 /// Rotas nomeadas do app.
 abstract final class AppRoutes {
   static const signIn = '/sign-in';
+  static const signUp = '/sign-up';
+  static const forgotPassword = '/forgot-password';
   static const catalog = '/'; // home do cliente
   static const adminHome = '/admin';
+
+  /// Rotas acessíveis sem autenticação.
+  static const _publicRoutes = {signIn, signUp, forgotPassword};
 }
 
 /// Roteador com proteção por autenticação e por role (NFR6).
@@ -25,18 +32,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       ref.watch(supabaseClientProvider).auth.onAuthStateChange,
     ),
     redirect: (context, state) {
-      // Enquanto o estado inicial de auth carrega, não redireciona.
       final loggedIn = ref.read(sessionProvider) != null;
       final isAdmin = ref.read(isAdminProvider);
-      final goingToSignIn = state.matchedLocation == AppRoutes.signIn;
+      final atPublicRoute =
+          AppRoutes._publicRoutes.contains(state.matchedLocation);
       final goingToAdmin = state.matchedLocation.startsWith(AppRoutes.adminHome);
 
+      // Sem sessão: só pode estar numa rota pública (login/cadastro/recuperação).
       if (!loggedIn) {
-        return goingToSignIn ? null : AppRoutes.signIn;
+        return atPublicRoute ? null : AppRoutes.signIn;
       }
 
-      // Logado tentando acessar a tela de login → manda para a home.
-      if (goingToSignIn) {
+      // Logado tentando acessar rota de autenticação → manda para a home.
+      if (atPublicRoute) {
         return isAdmin ? AppRoutes.adminHome : AppRoutes.catalog;
       }
 
@@ -51,6 +59,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.signIn,
         builder: (context, state) => const SignInScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.signUp,
+        builder: (context, state) => const SignUpScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(
         path: AppRoutes.catalog,
