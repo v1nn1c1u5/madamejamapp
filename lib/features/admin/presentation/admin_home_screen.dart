@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
-import '../../../core/supabase/supabase_providers.dart';
+import '../../auth/data/auth_repository.dart';
 
 class AdminHomeScreen extends ConsumerWidget {
   const AdminHomeScreen({super.key});
@@ -18,7 +18,7 @@ class AdminHomeScreen extends ConsumerWidget {
             tooltip: 'Sair',
             icon: const Icon(Icons.logout),
             onPressed: () =>
-                ref.read(supabaseClientProvider).auth.signOut(),
+                ref.read(authRepositoryProvider).signOut(),
           ),
         ],
       ),

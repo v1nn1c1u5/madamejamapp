@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -22,27 +24,52 @@ class OrderRepository {
     return _map(data);
   }
 
+  /// Observa um pedido em tempo real com dados completos (order_items + joins).
+  ///
+  /// O Supabase `.stream()` não suporta `select` com joins; por isso usamos
+  /// um [StreamController] que dispara um `fetchOrderDetail` completo sempre
+  /// que o realtime notifica uma alteração na linha.
   Stream<Order?> watchOrder(String id) {
-    return _client
-        .from('orders')
-        .stream(primaryKey: ['id'])
-        .eq('id', id)
-        .map((rows) {
-          if (rows.isEmpty) return null;
-          return Order.fromJson(rows.first);
-        });
+    late StreamController<Order?> controller;
+    StreamSubscription<List<Map<String, dynamic>>>? realtimeSub;
+
+    Future<void> fetchAndEmit() async {
+      try {
+        final order = await fetchOrderDetail(id);
+        if (!controller.isClosed) controller.add(order);
+      } catch (e) {
+        if (!controller.isClosed) controller.addError(e);
+      }
+    }
+
+    controller = StreamController<Order?>(
+      onListen: () {
+        fetchAndEmit();
+        realtimeSub = _client
+            .from('orders')
+            .stream(primaryKey: ['id'])
+            .eq('id', id)
+            .listen((_) => fetchAndEmit());
+      },
+      onCancel: () {
+        realtimeSub?.cancel();
+        controller.close();
+      },
+    );
+
+    return controller.stream;
   }
 
   // ─── Admin ────────────────────────────────────────────────────────────────
 
   Future<List<Order>> fetchOrdersForWeek(DateTime monday) async {
-    final friday = monday.add(const Duration(days: 6));
+    final sunday = monday.add(const Duration(days: 6));
     final data = await _client
         .from('orders')
         .select(_orderSelect)
         .eq('payment_status', 'paid')
         .gte('delivery_date', monday.toIso8601String().substring(0, 10))
-        .lte('delivery_date', friday.toIso8601String().substring(0, 10))
+        .lte('delivery_date', sunday.toIso8601String().substring(0, 10))
         .order('delivery_date');
     return _map(data);
   }

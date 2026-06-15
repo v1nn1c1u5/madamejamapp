@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/supabase/supabase_providers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../application/order_providers.dart';
 import '../domain/order.dart';
 
 class OrderTrackingScreen extends ConsumerWidget {
@@ -12,24 +12,35 @@ class OrderTrackingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final supabase = ref.read(supabaseClientProvider);
+    final orderAsync = ref.watch(orderTrackingProvider(orderId));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Acompanhar Pedido')),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: supabase
-            .from('orders')
-            .stream(primaryKey: ['id'])
-            .eq('id', orderId),
-        builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final rows = snap.data ?? [];
-          if (rows.isEmpty) {
+      body: orderAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 12),
+                const Text('Não foi possível carregar o pedido.'),
+                const SizedBox(height: 12),
+                FilledButton(
+                  onPressed: () =>
+                      ref.invalidate(orderTrackingProvider(orderId)),
+                  child: const Text('Tentar novamente'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        data: (order) {
+          if (order == null) {
             return const Center(child: Text('Pedido não encontrado.'));
           }
-          final order = Order.fromJson(rows.first);
           return _TrackingBody(order: order);
         },
       ),

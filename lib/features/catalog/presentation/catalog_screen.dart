@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
-import '../../../core/supabase/supabase_providers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../auth/data/auth_repository.dart';
 import '../../cart/application/cart_providers.dart';
 import '../application/catalog_providers.dart';
 import '../data/product_repository.dart';
@@ -75,7 +75,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             tooltip: 'Sair',
             icon: const Icon(Icons.logout),
             onPressed: () =>
-                ref.read(supabaseClientProvider).auth.signOut(),
+                ref.read(authRepositoryProvider).signOut(),
           ),
         ],
       ),
@@ -110,6 +110,8 @@ class _SearchBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final query = ref.watch(catalogSearchProvider);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: TextField(
@@ -117,14 +119,12 @@ class _SearchBar extends ConsumerWidget {
         decoration: InputDecoration(
           hintText: 'Buscar produtos…',
           prefixIcon: const Icon(Icons.search),
-          suffixIcon: controller.text.isNotEmpty
+          suffixIcon: query.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear),
                   onPressed: () {
                     controller.clear();
-                    ref
-                        .read(catalogSearchProvider.notifier)
-                        .state = '';
+                    ref.read(catalogSearchProvider.notifier).state = '';
                   },
                 )
               : null,

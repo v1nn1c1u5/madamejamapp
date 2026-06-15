@@ -48,5 +48,7 @@ final cartTotalProvider = Provider<double>((ref) {
 });
 
 final cartItemCountProvider = Provider<int>((ref) {
-  return ref.watch(cartProvider).length;
+  return ref
+      .watch(cartProvider)
+      .fold(0, (sum, item) => sum + item.quantity);
 });

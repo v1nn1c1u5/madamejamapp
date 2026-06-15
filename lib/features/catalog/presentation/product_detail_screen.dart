@@ -156,7 +156,7 @@ class _ProductDetailBodyState
                                   color: i == _imageIndex
                                       ? AppColors.champagneDark
                                       : Colors.white
-                                          .withOpacity(0.6),
+                                          .withValues(alpha: 0.6),
                                 ),
                               ),
                             ),
@@ -198,7 +198,7 @@ class _ProductDetailBodyState
                         selected: selected,
                         onSelected: (_) => _selectSku(sku),
                         selectedColor:
-                            AppColors.champagneDark.withOpacity(0.15),
+                            AppColors.champagneDark.withValues(alpha: 0.15),
                       );
                     }).toList(),
                   ),
