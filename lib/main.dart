@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -13,11 +14,14 @@ Future<void> main() async {
   if (AppConfig.hasSupabaseConfig) {
     await Supabase.initialize(
       url: AppConfig.supabaseUrl,
-      publishableKey: AppConfig.supabaseAnonKey,
+      anonKey: AppConfig.supabaseAnonKey,
     );
   }
 
-  if (AppConfig.hasStripeConfig) {
+  // flutter_stripe só tem implementação nativa em iOS e Android.
+  if (AppConfig.hasStripeConfig &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.android)) {
     Stripe.publishableKey = AppConfig.stripePublishableKey;
     Stripe.merchantIdentifier = 'merchant.com.madamejam';
     await Stripe.instance.applySettings();

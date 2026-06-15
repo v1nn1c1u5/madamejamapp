@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -62,6 +63,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       final clientSecret = response.data['clientSecret'] as String;
 
       setState(() => _pendingOrderId = orderId);
+
+      // flutter_stripe só funciona em iOS/Android.
+      if (defaultTargetPlatform != TargetPlatform.iOS &&
+          defaultTargetPlatform != TargetPlatform.android) {
+        throw UnsupportedError(
+            'Pagamento indisponível nesta plataforma. Use o app móvel.');
+      }
 
       // 2. Initialize Payment Sheet (card + PIX handled by Stripe UI)
       await Stripe.instance.initPaymentSheet(
