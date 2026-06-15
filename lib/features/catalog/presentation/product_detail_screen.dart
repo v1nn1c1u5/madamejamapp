@@ -68,32 +68,35 @@ class _ProductDetailBodyState
     final sku = _selectedSku;
     if (sku == null) return;
 
+    final messenger = ScaffoldMessenger.of(context);
+
     if (_quantity < sku.minQuantity) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(
           content: Text(
               'Quantidade mínima para "${sku.name}" é ${sku.minQuantity}.'),
-        ),
-      );
+        ));
       return;
     }
 
     ref.read(cartProvider.notifier).add(CartItem(
           productId: p.id,
           productName: p.name,
+          productMinQuantity: p.minQuantity,
           sku: sku,
           quantity: _quantity,
         ));
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+    messenger
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(
         content: Text('${p.name} adicionado ao carrinho.'),
         action: SnackBarAction(
           label: 'Ver carrinho',
           onPressed: () => context.push(AppRoutes.cart),
         ),
-      ),
-    );
+      ));
   }
 
   @override
@@ -227,13 +230,21 @@ class _ProductDetailBodyState
                         ),
                       ],
                     ),
-                    if (_selectedSku != null)
+                    if (_selectedSku != null) ...[
                       Text(
-                        'Mínimo: ${_selectedSku!.minQuantity} · '
+                        'Mín. por sabor: ${_selectedSku!.minQuantity} · '
                         'Subtotal: R\$ ${(_selectedSku!.price * _quantity).toStringAsFixed(2)}',
                         style: textTheme.bodySmall
                             ?.copyWith(color: Colors.grey),
                       ),
+                      if (p.minQuantity > 1)
+                        Text(
+                          'Mínimo por pedido: ${p.minQuantity} un. (total do produto)',
+                          style: textTheme.bodySmall?.copyWith(
+                              color: AppColors.champagneDark,
+                              fontWeight: FontWeight.w600),
+                        ),
+                    ],
                   ],
 
                   // ── Botão ────────────────────────────────────────────

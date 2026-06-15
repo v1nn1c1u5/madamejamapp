@@ -28,6 +28,7 @@ class _ProductFormScreenState
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
+  final _minQtyCtrl = TextEditingController(text: '1');
 
   bool _loading = false;
   bool _initialized = false;
@@ -39,6 +40,7 @@ class _ProductFormScreenState
   void dispose() {
     _nameCtrl.dispose();
     _descCtrl.dispose();
+    _minQtyCtrl.dispose();
     super.dispose();
   }
 
@@ -46,6 +48,7 @@ class _ProductFormScreenState
     if (_initialized) return;
     _nameCtrl.text = p.name;
     _descCtrl.text = p.description ?? '';
+    _minQtyCtrl.text = p.minQuantity.toString();
     _product = p;
     _initialized = true;
   }
@@ -55,6 +58,7 @@ class _ProductFormScreenState
     setState(() => _loading = true);
     try {
       final repo = ref.read(productRepositoryProvider);
+      final minQty = int.tryParse(_minQtyCtrl.text) ?? 1;
       if (_isEdit) {
         await repo.updateProduct(
           widget.productId!,
@@ -62,14 +66,14 @@ class _ProductFormScreenState
           description: _descCtrl.text.trim().isEmpty
               ? null
               : _descCtrl.text.trim(),
+          minQuantity: minQty,
         );
         ref.invalidate(productDetailProvider(widget.productId!));
       } else {
         final created = await repo.createProduct(
           _nameCtrl.text.trim(),
-          _descCtrl.text.trim().isEmpty
-              ? null
-              : _descCtrl.text.trim(),
+          _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
+          minQuantity: minQty,
         );
         setState(() {
           _product = created;
@@ -165,6 +169,20 @@ class _ProductFormScreenState
                     const InputDecoration(labelText: 'Descrição'),
                 minLines: 2,
                 maxLines: 4,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _minQtyCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Pedido mínimo (total do produto) *',
+                  helperText: 'Soma de todos os sabores/SKUs por pedido',
+                ),
+                keyboardType: TextInputType.number,
+                validator: (v) {
+                  final n = int.tryParse(v ?? '');
+                  if (n == null || n < 1) return 'Mínimo deve ser pelo menos 1';
+                  return null;
+                },
               ),
               // Save button for new product (needs to create first
               // before adding SKUs/images)

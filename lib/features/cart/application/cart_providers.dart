@@ -52,3 +52,21 @@ final cartItemCountProvider = Provider<int>((ref) {
       .watch(cartProvider)
       .fold(0, (sum, item) => sum + item.quantity);
 });
+
+/// Retorna os IDs de produto que não atingiram o mínimo por pedido.
+final cartProductMinViolationsProvider = Provider<List<String>>((ref) {
+  final items = ref.watch(cartProvider);
+  final byProduct = <String, ({String name, int minQty, int totalQty})>{};
+  for (final item in items) {
+    final current = byProduct[item.productId];
+    byProduct[item.productId] = (
+      name: item.productName,
+      minQty: item.productMinQuantity,
+      totalQty: (current?.totalQty ?? 0) + item.quantity,
+    );
+  }
+  return [
+    for (final entry in byProduct.entries)
+      if (entry.value.totalQty < entry.value.minQty) entry.key,
+  ];
+});

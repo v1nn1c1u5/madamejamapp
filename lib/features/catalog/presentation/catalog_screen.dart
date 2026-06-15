@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
+import '../../../core/supabase/supabase_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../cart/application/cart_providers.dart';
@@ -30,16 +31,18 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
   Widget build(BuildContext context) {
     final products = ref.watch(activeProductsProvider);
     final cartCount = ref.watch(cartItemCountProvider);
+    final loggedIn = ref.watch(sessionProvider) != null;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Madame Jam'),
         actions: [
-          IconButton(
-            tooltip: 'Meus pedidos',
-            icon: const Icon(Icons.receipt_long_outlined),
-            onPressed: () => context.push(AppRoutes.myOrders),
-          ),
+          if (loggedIn)
+            IconButton(
+              tooltip: 'Meus pedidos',
+              icon: const Icon(Icons.receipt_long_outlined),
+              onPressed: () => context.push(AppRoutes.myOrders),
+            ),
           Stack(
             children: [
               IconButton(
@@ -71,12 +74,18 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 ),
             ],
           ),
-          IconButton(
-            tooltip: 'Sair',
-            icon: const Icon(Icons.logout),
-            onPressed: () =>
-                ref.read(authRepositoryProvider).signOut(),
-          ),
+          if (loggedIn)
+            IconButton(
+              tooltip: 'Sair',
+              icon: const Icon(Icons.logout),
+              onPressed: () => ref.read(authRepositoryProvider).signOut(),
+            )
+          else
+            IconButton(
+              tooltip: 'Entrar',
+              icon: const Icon(Icons.login),
+              onPressed: () => context.push(AppRoutes.signIn),
+            ),
         ],
       ),
       body: Column(

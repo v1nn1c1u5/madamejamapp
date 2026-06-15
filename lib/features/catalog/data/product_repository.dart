@@ -59,6 +59,7 @@ class Product {
     required this.name,
     required this.description,
     required this.active,
+    required this.minQuantity,
     required this.createdAt,
     required this.skus,
     required this.images,
@@ -68,6 +69,8 @@ class Product {
   final String name;
   final String? description;
   final bool active;
+  /// Quantidade mínima total do produto por pedido (soma de todos os SKUs).
+  final int minQuantity;
   final DateTime createdAt;
   final List<Sku> skus;
   final List<ProductImage> images;
@@ -93,6 +96,7 @@ class Product {
       name: json['name'] as String,
       description: json['description'] as String?,
       active: json['active'] as bool,
+      minQuantity: (json['min_quantity'] as int?) ?? 1,
       createdAt: DateTime.parse(json['created_at'] as String),
       skus: (json['skus'] as List<dynamic>? ?? [])
           .map((e) => Sku.fromJson(e as Map<String, dynamic>))
@@ -147,10 +151,18 @@ class ProductRepository {
     return _mapList(data);
   }
 
-  Future<Product> createProduct(String name, String? description) async {
+  Future<Product> createProduct(
+    String name,
+    String? description, {
+    int minQuantity = 1,
+  }) async {
     final data = await _client
         .from('products')
-        .insert({'name': name, 'description': description})
+        .insert({
+          'name': name,
+          'description': description,
+          'min_quantity': minQuantity,
+        })
         .select('*, skus(*), product_images(*)')
         .single();
     return Product.fromJson(data);
@@ -160,11 +172,13 @@ class ProductRepository {
     String id, {
     required String name,
     String? description,
+    int minQuantity = 1,
   }) async {
-    await _client
-        .from('products')
-        .update({'name': name, 'description': description})
-        .eq('id', id);
+    await _client.from('products').update({
+      'name': name,
+      'description': description,
+      'min_quantity': minQuantity,
+    }).eq('id', id);
   }
 
   Future<void> setActive(String id, {required bool active}) async {

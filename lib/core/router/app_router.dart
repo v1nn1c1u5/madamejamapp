@@ -50,7 +50,8 @@ abstract final class AppRoutes {
   static String adminProductEditPath(String id) => '/admin/products/$id';
   static String adminOrderDetailPath(String id) => '/admin/orders/$id';
 
-  static const _publicRoutes = {signIn, signUp, forgotPassword};
+  // Rotas que exigem autenticação obrigatória.
+  static const _protectedPrefixes = [checkout, myOrders, adminHome];
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -62,18 +63,26 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final loggedIn = ref.read(sessionProvider) != null;
       final isAdmin = ref.read(isAdminProvider);
-      final atPublicRoute =
-          AppRoutes._publicRoutes.contains(state.matchedLocation);
-      final goingToAdmin =
-          state.matchedLocation.startsWith(AppRoutes.adminHome);
+      final loc = state.matchedLocation;
 
-      if (!loggedIn) {
-        return atPublicRoute ? null : AppRoutes.signIn;
+      final atAuthScreen = {
+        AppRoutes.signIn,
+        AppRoutes.signUp,
+        AppRoutes.forgotPassword,
+      }.contains(loc);
+
+      // Rota exige login se começa com algum prefixo protegido.
+      final needsAuth = AppRoutes._protectedPrefixes
+          .any((prefix) => loc == prefix || loc.startsWith('$prefix/'));
+
+      if (!loggedIn && needsAuth) {
+        // Guarda destino para redirecionar após login.
+        return '${AppRoutes.signIn}?redirect=${Uri.encodeComponent(loc)}';
       }
-      if (atPublicRoute) {
+      if (loggedIn && atAuthScreen) {
         return isAdmin ? AppRoutes.adminHome : AppRoutes.catalog;
       }
-      if (goingToAdmin && !isAdmin) {
+      if (loc.startsWith(AppRoutes.adminHome) && !isAdmin) {
         return AppRoutes.catalog;
       }
       return null;
@@ -161,23 +170,18 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const DeliveryConfigScreen(),
           ),
           GoRoute(
-            path: 'orders',
-            routes: [
-              GoRoute(
-                path: 'week',
-                builder: (context, state) => const WeeklyOrdersScreen(),
-              ),
-              GoRoute(
-                path: 'day',
-                builder: (context, state) => const DailyOrdersScreen(),
-              ),
-              GoRoute(
-                path: ':id',
-                builder: (context, state) => AdminOrderDetailScreen(
-                  orderId: state.pathParameters['id']!,
-                ),
-              ),
-            ],
+            path: 'orders/week',
+            builder: (context, state) => const WeeklyOrdersScreen(),
+          ),
+          GoRoute(
+            path: 'orders/day',
+            builder: (context, state) => const DailyOrdersScreen(),
+          ),
+          GoRoute(
+            path: 'orders/:id',
+            builder: (context, state) => AdminOrderDetailScreen(
+              orderId: state.pathParameters['id']!,
+            ),
           ),
         ],
       ),

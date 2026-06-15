@@ -14,6 +14,7 @@ class CartScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final items = ref.watch(cartProvider);
     final total = ref.watch(cartTotalProvider);
+    final violations = ref.watch(cartProductMinViolationsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -30,6 +31,8 @@ class CartScreen extends ConsumerWidget {
           ? const _EmptyCart()
           : Column(
               children: [
+                if (violations.isNotEmpty)
+                  _MinQuantityBanner(items: items, violatedIds: violations),
                 Expanded(
                   child: ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -38,9 +41,48 @@ class CartScreen extends ConsumerWidget {
                     itemBuilder: (_, i) => _CartItemTile(item: items[i]),
                   ),
                 ),
-                _CartSummary(total: total),
+                _CartSummary(total: total, hasViolations: violations.isNotEmpty),
               ],
             ),
+    );
+  }
+}
+
+class _MinQuantityBanner extends StatelessWidget {
+  const _MinQuantityBanner({
+    required this.items,
+    required this.violatedIds,
+  });
+  final List<CartItem> items;
+  final List<String> violatedIds;
+
+  @override
+  Widget build(BuildContext context) {
+    final violated = items
+        .where((i) => violatedIds.contains(i.productId))
+        .map((i) => i.productName)
+        .toSet();
+    final names = violated.join(', ');
+    return Container(
+      width: double.infinity,
+      color: AppColors.champagneDark.withValues(alpha: 0.12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline,
+              size: 18, color: AppColors.champagneDark),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Pedido mínimo não atingido: $names',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.champagneDark,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -160,8 +202,9 @@ class _QuantityStepper extends StatelessWidget {
 }
 
 class _CartSummary extends StatelessWidget {
-  const _CartSummary({required this.total});
+  const _CartSummary({required this.total, required this.hasViolations});
   final double total;
+  final bool hasViolations;
 
   @override
   Widget build(BuildContext context) {
@@ -199,9 +242,22 @@ class _CartSummary extends StatelessWidget {
             child: FilledButton.icon(
               icon: const Icon(Icons.calendar_month_outlined),
               label: const Text('Ir para o checkout'),
-              onPressed: () => context.push(AppRoutes.checkout),
+              onPressed:
+                  hasViolations ? null : () => context.push(AppRoutes.checkout),
             ),
           ),
+          if (hasViolations)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'Ajuste as quantidades para continuar.',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ),
         ],
       ),
     );

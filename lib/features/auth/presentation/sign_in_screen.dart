@@ -28,19 +28,30 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  String? _redirectTarget(BuildContext context) {
+    final raw = GoRouterState.of(context).uri.queryParameters['redirect'];
+    if (raw == null || raw.isEmpty) return null;
+    return Uri.decodeComponent(raw);
+  }
+
+  Future<void> _submit(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
-    // Navegação após sucesso é automática (router observa o auth state).
-    await ref.read(authControllerProvider.notifier).signIn(
+    final dest = _redirectTarget(context);
+    final router = GoRouter.of(context);
+    final ok = await ref.read(authControllerProvider.notifier).signIn(
           email: _email.text,
           password: _password.text,
         );
+    if (ok && mounted) {
+      router.go(dest ?? AppRoutes.catalog);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(authControllerProvider);
     final loading = state.isLoading;
+    final hasRedirect = _redirectTarget(context) != null;
     ref.listenAuthErrors(context);
 
     final textTheme = Theme.of(context).textTheme;
@@ -81,7 +92,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         obscureText: true,
                         autofillHints: const [AutofillHints.password],
                         textInputAction: TextInputAction.done,
-                        onFieldSubmitted: (_) => _submit(),
+                        onFieldSubmitted: (_) => _submit(context),
                         validator: (v) =>
                             Validators.required(v, field: 'Senha'),
                       ),
@@ -98,7 +109,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton(
-                          onPressed: loading ? null : _submit,
+                          onPressed: loading ? null : () => _submit(context),
                           child: loading
                               ? const AuthButtonSpinner()
                               : const Text('Entrar'),
@@ -118,6 +129,13 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           ),
                         ],
                       ),
+                      if (hasRedirect) ...[
+                        const SizedBox(height: 4),
+                        TextButton(
+                          onPressed: () => context.go(AppRoutes.catalog),
+                          child: const Text('Continuar sem login'),
+                        ),
+                      ],
                     ],
                   ),
                 ),
