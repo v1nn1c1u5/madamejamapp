@@ -1,5 +1,5 @@
 {
-  "SUPABASE_URL": "https://wjwjfbvzuodvsnjktwyu.supabase.co",
-  "SUPABASE_ANON_KEY": "sb_publishable_u_hVcU_ecTrV5vzyhi5pag_t2VaZ8Lh",
-  "STRIPE_PUBLISHABLE_KEY": "pk_test_51Rw2fG4yOrri7u6H7wRu2UhmkDThbPytY6uHFSB0EeIIpKpnorYWzhi5hhqkR9WBKpV9J1BFPd2N3fmLZukQlT2900Guar7kDF"
+  "SUPABASE_URL": "",
+  "SUPABASE_ANON_KEY": "",
+  "STRIPE_PUBLISHABLE_KEY": ""
 }
