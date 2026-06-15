@@ -14,7 +14,7 @@ Future<void> main() async {
   if (AppConfig.hasSupabaseConfig) {
     await Supabase.initialize(
       url: AppConfig.supabaseUrl,
-      publishableKey: AppConfig.supabaseAnonKey,
+      anonKey: AppConfig.supabaseAnonKey, // ignore: deprecated_member_use
     );
   }
 
