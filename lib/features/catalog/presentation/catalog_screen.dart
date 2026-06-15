@@ -225,8 +225,8 @@ class _ProductCover extends StatelessWidget {
     return CachedNetworkImage(
       imageUrl: url!,
       fit: BoxFit.cover,
-      placeholder: (_, __) => Container(color: AppColors.champagneLight),
-      errorWidget: (_, __, ___) => Container(
+      placeholder: (_, _) => Container(color: AppColors.champagneLight),
+      errorWidget: (_, _, _) => Container(
         color: AppColors.champagneLight,
         child: const Center(
           child: Icon(Icons.bakery_dining_outlined,

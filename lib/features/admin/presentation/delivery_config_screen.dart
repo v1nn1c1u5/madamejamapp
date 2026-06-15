@@ -60,7 +60,7 @@ class _ZonesTab extends ConsumerWidget {
                 child: ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
                   itemCount: list.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 6),
+                  separatorBuilder: (_, _) => const SizedBox(height: 6),
                   itemBuilder: (ctx, i) => _ZoneTile(
                     zone: list[i],
                     onDelete: () async {
@@ -227,7 +227,7 @@ class _BlockedDatesTab extends ConsumerWidget {
                 child: ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
                   itemCount: list.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 6),
+                  separatorBuilder: (_, _) => const SizedBox(height: 6),
                   itemBuilder: (ctx, i) => _BlockedDateTile(
                     blocked: list[i],
                     onDelete: () async {

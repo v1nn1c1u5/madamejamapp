@@ -38,7 +38,7 @@ class ProductListScreen extends ConsumerWidget {
                 child: ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
                   itemCount: list.length,
-                  separatorBuilder: (_, __) =>
+                  separatorBuilder: (_, _) =>
                       const SizedBox(height: 8),
                   itemBuilder: (ctx, i) =>
                       _ProductTile(product: list[i]),

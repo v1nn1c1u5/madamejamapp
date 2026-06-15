@@ -88,7 +88,7 @@ class _DailyOrdersScreenState
                         padding:
                             const EdgeInsets.fromLTRB(16, 12, 16, 24),
                         itemCount: list.length,
-                        separatorBuilder: (_, __) =>
+                        separatorBuilder: (_, _) =>
                             const SizedBox(height: 8),
                         itemBuilder: (_, i) =>
                             _OrderCard(order: list[i]),

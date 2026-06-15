@@ -585,7 +585,7 @@ class _ImageSectionState extends ConsumerState<_ImageSection> {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: images.length,
-              separatorBuilder: (_, __) =>
+              separatorBuilder: (_, _) =>
                   const SizedBox(width: 8),
               itemBuilder: (ctx, i) => _ImageThumb(
                 image: images[i],

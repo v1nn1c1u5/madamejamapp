@@ -124,9 +124,9 @@ class _ProductDetailBodyState
                         itemBuilder: (context, i) => CachedNetworkImage(
                           imageUrl: p.images[i].storageUrl,
                           fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(
+                          placeholder: (_, _) => Container(
                               color: AppColors.champagneLight),
-                          errorWidget: (_, __, ___) => Container(
+                          errorWidget: (_, _, _) => Container(
                             color: AppColors.champagneLight,
                             child: const Center(
                               child: Icon(Icons.bakery_dining_outlined,
