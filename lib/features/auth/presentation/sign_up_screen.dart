@@ -59,7 +59,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final loading = ref.watch(authControllerProvider).isLoading;
+    final authState = ref.watch(authControllerProvider);
+    final loading = authState.isLoading;
+    final errorMessage = authState.hasError && !authState.isLoading
+        ? authErrorMessage(authState.error)
+        : null;
     ref.listenAuthErrors(context);
 
     return Scaffold(
@@ -122,6 +126,32 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             Validators.confirmPassword(v, _password.text),
                       ),
                       const SizedBox(height: 24),
+                      if (errorMessage != null) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red.shade200),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.error_outline,
+                                  color: Colors.red, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  errorMessage,
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton(

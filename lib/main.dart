@@ -5,16 +5,20 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/config/app_config.dart';
+import 'core/network/http_overrides.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Proxy/antivírus corporativo pode injetar certificado autoassinado.
+  setupDevHttpOverridesIfNeeded();
+
   if (AppConfig.hasSupabaseConfig) {
     await Supabase.initialize(
       url: AppConfig.supabaseUrl,
-      anonKey: AppConfig.supabaseAnonKey, // ignore: deprecated_member_use
+      publishableKey: AppConfig.supabaseAnonKey,
     );
   }
 
