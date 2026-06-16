@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/config/app_config.dart';
@@ -12,8 +14,17 @@ Future<void> main() async {
   if (AppConfig.hasSupabaseConfig) {
     await Supabase.initialize(
       url: AppConfig.supabaseUrl,
-      publishableKey: AppConfig.supabaseAnonKey,
+      anonKey: AppConfig.supabaseAnonKey, // ignore: deprecated_member_use
     );
+  }
+
+  // flutter_stripe só tem implementação nativa em iOS e Android.
+  if (AppConfig.hasStripeConfig &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.android)) {
+    Stripe.publishableKey = AppConfig.stripePublishableKey;
+    Stripe.merchantIdentifier = 'merchant.com.madamejam';
+    await Stripe.instance.applySettings();
   }
 
   runApp(const ProviderScope(child: MadameJamApp()));
@@ -24,8 +35,6 @@ class MadameJamApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Sem configuração do Supabase, exibe uma tela orientando o setup do
-    // ambiente em vez de quebrar na inicialização.
     if (!AppConfig.hasSupabaseConfig) {
       return MaterialApp(
         title: 'Madame Jam',
@@ -62,8 +71,8 @@ class _MissingConfigScreen extends StatelessWidget {
               Text('Configuração pendente', style: textTheme.titleLarge),
               const SizedBox(height: 12),
               Text(
-                'Defina SUPABASE_URL e SUPABASE_ANON_KEY via --dart-define '
-                'para iniciar o app. Veja o README.',
+                'Defina SUPABASE_URL, SUPABASE_ANON_KEY e '
+                'STRIPE_PUBLISHABLE_KEY via --dart-define para iniciar o app.',
                 style: textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),

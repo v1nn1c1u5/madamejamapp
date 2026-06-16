@@ -50,6 +50,12 @@ dependencies:
   # Tipografia do design system (serifada + sans-serif)
   google_fonts: ^6.2.1
 
+  # Imagens de produtos com cache (Epic 2)
+  cached_network_image: ^3.4.1
+
+  # Upload de imagens pelo admin (Epic 2)
+  image_picker: ^1.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
