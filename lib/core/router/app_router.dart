@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../scaffold/root_scaffold_messenger.dart';
 import '../supabase/supabase_providers.dart';
 import 'go_router_refresh_stream.dart';
 import '../../features/auth/presentation/sign_in_screen.dart';
@@ -55,7 +56,7 @@ abstract final class AppRoutes {
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: AppRoutes.catalog,
     refreshListenable: GoRouterRefreshStream(
       ref.watch(supabaseClientProvider).auth.onAuthStateChange,
@@ -187,4 +188,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  router.routerDelegate.addListener(() {
+    rootScaffoldMessengerKey.currentState?.clearSnackBars();
+  });
+
+  return router;
 });
