@@ -49,7 +49,8 @@
       "Bash(unzip -l \"/c/Users/elton.ribeiro/jdk1708/jdk-17.0.8+7/lib/src.zip\")",
       "Bash(unzip -j \"/c/Users/elton.ribeiro/jdk1708/jdk-17.0.8+7/lib/src.zip\" \"java.base/sun/nio/ch/PipeImpl.java\")",
       "mcp__659f3d82-78ae-45cf-97c5-6faf221bbcc8__list_projects",
-      "mcp__659f3d82-78ae-45cf-97c5-6faf221bbcc8__apply_migration"
+      "mcp__659f3d82-78ae-45cf-97c5-6faf221bbcc8__apply_migration",
+      "WebSearch"
     ]
   }
 }

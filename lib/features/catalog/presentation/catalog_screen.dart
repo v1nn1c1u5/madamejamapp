@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/auth/auth_actions.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/supabase/supabase_providers.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../auth/data/auth_repository.dart';
 import '../../cart/application/cart_providers.dart';
 import '../application/catalog_providers.dart';
 import '../data/product_repository.dart';
@@ -78,7 +78,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             IconButton(
               tooltip: 'Sair',
               icon: const Icon(Icons.logout),
-              onPressed: () => ref.read(authRepositoryProvider).signOut(),
+              onPressed: () => signOut(ref, context: context),
             )
           else
             IconButton(

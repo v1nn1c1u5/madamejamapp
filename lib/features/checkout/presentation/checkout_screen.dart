@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/auth/auth_routes.dart';
+import '../../../core/auth/checkout_auth.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/supabase/supabase_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/validators.dart';
 import '../../admin/data/delivery_repository.dart';
@@ -127,6 +130,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final total = ref.read(cartTotalProvider);
 
       if (!mounted) return;
+
+      final session = ref.read(sessionProvider);
+      if (session == null) {
+        context.go(signInRouteWithRedirect(AppRoutes.payment));
+        return;
+      }
+
       context.push(
         AppRoutes.payment,
         extra: CheckoutData(
@@ -158,6 +168,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const CheckoutIdentityBanner(),
+            const SizedBox(height: 20),
+
             // ── Resumo ────────────────────────────────────────────────
             Text('Seu pedido',
                 style: Theme.of(context).textTheme.titleMedium),

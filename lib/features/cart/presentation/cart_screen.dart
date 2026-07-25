@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../core/auth/checkout_auth.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../application/cart_providers.dart';
@@ -201,13 +201,13 @@ class _QuantityStepper extends StatelessWidget {
   }
 }
 
-class _CartSummary extends StatelessWidget {
+class _CartSummary extends ConsumerWidget {
   const _CartSummary({required this.total, required this.hasViolations});
   final double total;
   final bool hasViolations;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       decoration: BoxDecoration(
@@ -242,8 +242,13 @@ class _CartSummary extends StatelessWidget {
             child: FilledButton.icon(
               icon: const Icon(Icons.calendar_month_outlined),
               label: const Text('Ir para o checkout'),
-              onPressed:
-                  hasViolations ? null : () => context.push(AppRoutes.checkout),
+              onPressed: hasViolations
+                  ? null
+                  : () => navigateWithAuth(
+                        context,
+                        ref,
+                        destination: AppRoutes.checkout,
+                      ),
             ),
           ),
           if (hasViolations)

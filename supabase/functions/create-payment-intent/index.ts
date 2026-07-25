@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalCents,
       currency: 'brl',
-      payment_method_types: ['card', 'pix'],
+      payment_method_types: ['card'],
       metadata: { order_id: order.id },
     })
 

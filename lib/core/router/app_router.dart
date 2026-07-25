@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../auth/auth_routes.dart';
+import '../auth/checkout_auth.dart';
 import '../scaffold/root_scaffold_messenger.dart';
 import '../supabase/supabase_providers.dart';
 import 'go_router_refresh_stream.dart';
@@ -51,8 +53,8 @@ abstract final class AppRoutes {
   static String adminProductEditPath(String id) => '/admin/products/$id';
   static String adminOrderDetailPath(String id) => '/admin/orders/$id';
 
-  // Rotas que exigem autenticação obrigatória.
-  static const _protectedPrefixes = [checkout, myOrders, adminHome];
+  /// Prefixos de rotas que exigem autenticação obrigatória.
+  static const authRequiredPrefixes = [checkout, myOrders, adminHome];
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -73,12 +75,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       }.contains(loc);
 
       // Rota exige login se começa com algum prefixo protegido.
-      final needsAuth = AppRoutes._protectedPrefixes
-          .any((prefix) => loc == prefix || loc.startsWith('$prefix/'));
+      final needsAuth = routeRequiresAuth(loc);
 
       if (!loggedIn && needsAuth) {
         // Guarda destino para redirecionar após login.
-        return '${AppRoutes.signIn}?redirect=${Uri.encodeComponent(loc)}';
+        return signInRouteWithRedirect(loc);
       }
       if (loggedIn && atAuthScreen) {
         return isAdmin ? AppRoutes.adminHome : AppRoutes.catalog;
@@ -120,12 +121,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.checkout,
-        builder: (context, state) => const CheckoutScreen(),
+        builder: (context, state) => AuthRequired(
+          destination: AppRoutes.checkout,
+          child: const CheckoutScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.payment,
-        builder: (context, state) => PaymentScreen(
-          checkoutData: state.extra! as CheckoutData,
+        builder: (context, state) => AuthRequired(
+          destination: AppRoutes.payment,
+          child: PaymentScreen(
+            checkoutData: state.extra! as CheckoutData,
+          ),
         ),
       ),
       GoRoute(

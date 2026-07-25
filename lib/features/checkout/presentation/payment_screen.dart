@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/auth/auth_routes.dart';
+import '../../../core/auth/checkout_auth.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/supabase/supabase_providers.dart';
 import '../../../core/theme/app_colors.dart';
@@ -34,6 +36,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   Future<void> _pay() async {
+    final session = ref.read(sessionProvider);
+    if (session == null) {
+      context.go(signInRouteWithRedirect(AppRoutes.payment));
+      return;
+    }
+
     setState(() {
       _loading = true;
       _errorMessage = null;
@@ -71,7 +79,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             'Pagamento indisponível nesta plataforma. Use o app móvel.');
       }
 
-      // 2. Initialize Payment Sheet (card + PIX handled by Stripe UI)
+      // 2. Initialize Payment Sheet (cartão)
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
@@ -100,9 +108,27 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     } catch (e) {
       setState(() {
         _loading = false;
-        _errorMessage = 'Erro ao processar pagamento: $e';
+        _errorMessage = _paymentErrorMessage(e);
       });
     }
+  }
+
+  String _paymentErrorMessage(Object error) {
+    final text = error.toString();
+
+    if (text.contains('status: 401') || text.contains('Unauthorized')) {
+      return 'Faça login para concluir o pagamento.';
+    }
+
+    final detailsMatch =
+        RegExp(r'details: \{error: ([^}]+)\}').firstMatch(text);
+    if (detailsMatch != null) {
+      return detailsMatch
+          .group(1)!
+          .replaceFirst(RegExp(r'^Error:\s*'), '');
+    }
+
+    return 'Erro ao processar pagamento. Tente novamente.';
   }
 
   void _watchOrderConfirmation(String orderId) {
@@ -133,8 +159,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           }
         });
 
-    // Timeout after 10 minutes for PIX
-    Future.delayed(const Duration(minutes: 10), () {
+    // Timeout caso a confirmação via webhook demore
+    Future.delayed(const Duration(minutes: 3), () {
       if (mounted && _loading) {
         _realtimeSub?.cancel();
         setState(() {
@@ -182,18 +208,6 @@ class _WaitingPayment extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge,
               textAlign: TextAlign.center,
             ),
-            if (orderId != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                'Para PIX: após pagar no seu banco, '
-                'esta tela será atualizada automaticamente.',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-            ],
           ],
         ),
       ),
@@ -222,6 +236,9 @@ class _PaymentBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const CheckoutIdentityBanner(),
+          const SizedBox(height: 20),
+
           // ── Resumo ────────────────────────────────────────────────
           Text('Resumo', style: textTheme.titleMedium),
           const SizedBox(height: 8),
@@ -285,7 +302,7 @@ class _PaymentBody extends StatelessWidget {
           Text('Forma de pagamento', style: textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
-            'Cartão de crédito/débito ou PIX — escolha no próximo passo.',
+            'Cartão de crédito ou débito.',
             style: textTheme.bodySmall?.copyWith(color: Colors.grey),
           ),
           const SizedBox(height: 20),
