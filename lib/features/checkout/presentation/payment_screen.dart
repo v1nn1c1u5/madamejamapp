@@ -87,6 +87,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           paymentIntentClientSecret: clientSecret,
           merchantDisplayName: 'Madame Jam',
           style: ThemeMode.light,
+          // Pix e 3DS abrem uma página da Stripe/banco; este link (scheme
+          // registrado no Info.plist do iOS) traz o cliente de volta ao app.
+          returnURL: 'madamejam://stripe-redirect',
         ),
       );
 
