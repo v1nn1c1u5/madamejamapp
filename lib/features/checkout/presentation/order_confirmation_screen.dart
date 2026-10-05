@@ -40,7 +40,8 @@ class OrderConfirmationScreen extends ConsumerWidget {
                         'Entrega em '
                         '${order.deliveryDate.day.toString().padLeft(2, '0')}/'
                         '${order.deliveryDate.month.toString().padLeft(2, '0')}/'
-                        '${order.deliveryDate.year}',
+                        '${order.deliveryDate.year}'
+                        '${order.formattedDeliveryTime != null ? ' às ${order.formattedDeliveryTime}' : ''}',
                         style: Theme.of(context).textTheme.bodyLarge,
                         textAlign: TextAlign.center,
                       ),
