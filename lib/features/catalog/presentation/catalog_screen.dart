@@ -32,11 +32,20 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     final products = ref.watch(activeProductsProvider);
     final cartCount = ref.watch(cartItemCountProvider);
     final loggedIn = ref.watch(sessionProvider) != null;
+    final isAdmin = ref.watch(isAdminProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Madame Jam'),
         actions: [
+          // A sessão restaurada abre o app no catálogo; sem este atalho o
+          // admin só chegava ao painel saindo e entrando de novo.
+          if (isAdmin)
+            IconButton(
+              tooltip: 'Painel admin',
+              icon: const Icon(Icons.admin_panel_settings_outlined),
+              onPressed: () => context.push(AppRoutes.adminHome),
+            ),
           if (loggedIn)
             IconButton(
               tooltip: 'Meus pedidos',

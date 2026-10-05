@@ -15,6 +15,11 @@ class AdminHomeScreen extends ConsumerWidget {
         title: const Text('Madame Jam · Admin'),
         actions: [
           IconButton(
+            tooltip: 'Ver loja',
+            icon: const Icon(Icons.storefront_outlined),
+            onPressed: () => context.go(AppRoutes.catalog),
+          ),
+          IconButton(
             tooltip: 'Sair',
             icon: const Icon(Icons.logout),
             onPressed: () => signOut(ref, context: context),
