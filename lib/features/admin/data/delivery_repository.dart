@@ -119,15 +119,14 @@ class DeliveryRepository {
       );
       return response.data['covered'] as bool? ?? false;
     } catch (_) {
-      // Fallback: query local when function unavailable
-      final data = await _client
-          .from('delivery_zones')
-          .select('id')
-          .ilike('state', state)
-          .ilike('city', city)
-          .ilike('neighborhood', neighborhood)
-          .limit(1);
-      return (data as List).isNotEmpty;
+      // Fallback: mesma comparação (insensível a acentos) direto no banco
+      // quando a Edge Function estiver indisponível.
+      final data = await _client.rpc('delivery_zone_covered', params: {
+        'p_state': state,
+        'p_city': city,
+        'p_neighborhood': neighborhood,
+      });
+      return data as bool? ?? false;
     }
   }
 }

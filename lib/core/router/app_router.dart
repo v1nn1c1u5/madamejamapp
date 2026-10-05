@@ -15,6 +15,9 @@ import '../../features/cart/presentation/cart_screen.dart';
 import '../../features/checkout/presentation/checkout_screen.dart';
 import '../../features/checkout/presentation/payment_screen.dart';
 import '../../features/checkout/presentation/order_confirmation_screen.dart';
+import '../../features/addresses/domain/address.dart';
+import '../../features/addresses/presentation/address_list_screen.dart';
+import '../../features/addresses/presentation/address_form_screen.dart';
 import '../../features/orders/presentation/order_history_screen.dart';
 import '../../features/orders/presentation/order_tracking_screen.dart';
 import '../../features/admin/presentation/admin_home_screen.dart';
@@ -37,6 +40,8 @@ abstract final class AppRoutes {
   static const checkout = '/checkout';
   static const payment = '/checkout/payment';
   static const myOrders = '/orders';
+  static const addresses = '/addresses';
+  static const addressForm = '/addresses/form';
 
   static String productDetailPath(String id) => '/product/$id';
   static String orderConfirmationPath(String id) => '/orders/$id/confirmation';
@@ -54,7 +59,12 @@ abstract final class AppRoutes {
   static String adminOrderDetailPath(String id) => '/admin/orders/$id';
 
   /// Prefixos de rotas que exigem autenticação obrigatória.
-  static const authRequiredPrefixes = [checkout, myOrders, adminHome];
+  static const authRequiredPrefixes = [
+    checkout,
+    myOrders,
+    addresses,
+    adminHome,
+  ];
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -138,6 +148,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.myOrders,
         builder: (context, state) => const OrderHistoryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.addresses,
+        builder: (context, state) => AuthRequired(
+          destination: AppRoutes.addresses,
+          child: const AddressListScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.addressForm,
+        builder: (context, state) => AuthRequired(
+          destination: AppRoutes.addressForm,
+          child: AddressFormScreen(existing: state.extra as Address?),
+        ),
       ),
       GoRoute(
         path: '/orders/:id',

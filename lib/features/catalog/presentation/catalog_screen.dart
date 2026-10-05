@@ -43,6 +43,12 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
               icon: const Icon(Icons.receipt_long_outlined),
               onPressed: () => context.push(AppRoutes.myOrders),
             ),
+          if (loggedIn)
+            IconButton(
+              tooltip: 'Meus endereços',
+              icon: const Icon(Icons.location_on_outlined),
+              onPressed: () => context.push(AppRoutes.addresses),
+            ),
           Stack(
             children: [
               IconButton(

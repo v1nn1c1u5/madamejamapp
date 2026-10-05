@@ -118,7 +118,9 @@ class _OrderCard extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(
             horizontal: 16, vertical: 8),
         title: Text(
-          order.customerName ?? 'Cliente',
+          order.formattedDeliveryTime != null
+              ? '${order.formattedDeliveryTime} — ${order.customerName ?? 'Cliente'}'
+              : order.customerName ?? 'Cliente',
           style: textTheme.titleMedium,
         ),
         subtitle: Column(

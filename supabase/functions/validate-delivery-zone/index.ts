@@ -25,18 +25,16 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    const { data, error } = await supabase
-      .from('delivery_zones')
-      .select('id')
-      .ilike('state', state.trim())
-      .ilike('city', city.trim())
-      .ilike('neighborhood', neighborhood.trim())
-      .limit(1)
+    const { data, error } = await supabase.rpc('delivery_zone_covered', {
+      p_state: state.trim(),
+      p_city: city.trim(),
+      p_neighborhood: neighborhood.trim(),
+    })
 
     if (error) throw error
 
     return new Response(
-      JSON.stringify({ covered: (data?.length ?? 0) > 0 }),
+      JSON.stringify({ covered: data === true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err) {

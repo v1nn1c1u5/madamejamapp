@@ -55,9 +55,9 @@ Deno.serve(async (req) => {
     }
 
     // 3. Parse request body
-    const { cart, deliveryDate, deliveryAddress } = await req.json()
+    const { cart, deliveryDate, deliveryTime, deliveryAddress, notes } = await req.json()
 
-    if (!cart?.length || !deliveryDate || !deliveryAddress) {
+    if (!cart?.length || !deliveryDate || !deliveryTime || !deliveryAddress) {
       return new Response(JSON.stringify({ error: 'Dados inválidos' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -108,7 +108,9 @@ Deno.serve(async (req) => {
       .insert({
         customer_id: customer.id,
         delivery_date: deliveryDate,
+        delivery_time: deliveryTime,
         delivery_address: deliveryAddress,
+        notes: notes || null,
         total: totalCents / 100,
         payment_status: 'pending',
         production_status: 'aguardando',

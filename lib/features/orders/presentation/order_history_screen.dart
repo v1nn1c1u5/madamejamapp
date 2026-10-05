@@ -79,7 +79,8 @@ class _OrderTile extends StatelessWidget {
         title: Text(
           '${order.deliveryDate.day.toString().padLeft(2, '0')}/'
           '${order.deliveryDate.month.toString().padLeft(2, '0')}/'
-          '${order.deliveryDate.year}',
+          '${order.deliveryDate.year}'
+          '${order.formattedDeliveryTime != null ? ' às ${order.formattedDeliveryTime}' : ''}',
           style: textTheme.titleMedium,
         ),
         subtitle: Column(

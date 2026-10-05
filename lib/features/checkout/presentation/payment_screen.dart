@@ -63,7 +63,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               .toList(),
           'deliveryDate':
               data.deliveryDate.toIso8601String().substring(0, 10),
+          'deliveryTime': data.deliveryTime,
           'deliveryAddress': data.deliveryAddress.toJson(),
+          if (data.notes != null) 'notes': data.notes,
         },
       );
 
@@ -247,12 +249,18 @@ class _PaymentBody extends StatelessWidget {
             value:
                 '${data.deliveryDate.day.toString().padLeft(2, '0')}/'
                 '${data.deliveryDate.month.toString().padLeft(2, '0')}/'
-                '${data.deliveryDate.year}',
+                '${data.deliveryDate.year} às ${data.deliveryTime}',
           ),
           _InfoRow(
             label: 'Endereço',
             value: data.deliveryAddress.formatted,
           ),
+          if (data.notes != null) ...[
+            const SizedBox(height: 8),
+            Text('Observações', style: textTheme.bodySmall?.copyWith(
+                color: Colors.grey)),
+            Text(data.notes!, style: textTheme.bodyMedium),
+          ],
           const SizedBox(height: 12),
           ...data.items.map(
             (item) => _InfoRow(
@@ -351,11 +359,16 @@ class _InfoRow extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium),
           ),
           const SizedBox(width: 8),
-          Text(value,
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
         ],
       ),
     );
