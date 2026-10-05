@@ -22,6 +22,19 @@ Future<void> main() async {
       url: AppConfig.supabaseUrl,
       publishableKey: AppConfig.supabaseAnonKey,
     );
+
+    // A sessão persistida é restaurada mesmo vencida e só renovada depois,
+    // em segundo plano. Sem aguardar, as primeiras consultas ao reabrir o
+    // app falham com "JWT expired" (PGRST303).
+    final auth = Supabase.instance.client.auth;
+    if (auth.currentSession?.isExpired ?? false) {
+      try {
+        await auth.refreshSession();
+      } catch (_) {
+        // Sem rede ou refresh token inválido: o GoTrue trata a sessão e o
+        // fluxo de login normal assume a partir daqui.
+      }
+    }
   }
 
   // flutter_stripe só tem implementação nativa em iOS e Android.

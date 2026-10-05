@@ -254,6 +254,7 @@ class _PaymentBody extends StatelessWidget {
           _InfoRow(
             label: 'Endereço',
             value: data.deliveryAddress.formatted,
+            expandValue: true,
           ),
           if (data.notes != null) ...[
             const SizedBox(height: 8),
@@ -343,12 +344,30 @@ class _PaymentBody extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
+  const _InfoRow({
+    required this.label,
+    required this.value,
+    this.expandValue = false,
+  });
   final String label;
   final String value;
 
+  /// Use para valores longos (ex.: endereço): o valor ocupa 2/3 da linha e
+  /// quebra em várias linhas. Por padrão o valor fica no tamanho natural e o
+  /// rótulo usa o restante (bom para itens e preços).
+  final bool expandValue;
+
   @override
   Widget build(BuildContext context) {
+    final valueText = Text(
+      value,
+      textAlign: TextAlign.right,
+      style: Theme.of(context)
+          .textTheme
+          .bodyMedium
+          ?.copyWith(fontWeight: FontWeight.w600),
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -359,16 +378,10 @@ class _InfoRow extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium),
           ),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
+          if (expandValue)
+            Expanded(flex: 2, child: valueText)
+          else
+            valueText,
         ],
       ),
     );
