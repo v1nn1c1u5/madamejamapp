@@ -78,83 +78,104 @@ class _ZonesTab extends ConsumerWidget {
 
   Future<void> _showAddZoneDialog(
       BuildContext context, WidgetRef ref) async {
-    final formKey = GlobalKey<FormState>();
-    final stateCtrl = TextEditingController();
-    final cityCtrl = TextEditingController();
-    final neighborhoodCtrl = TextEditingController();
-
     await showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Nova zona de entrega'),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: stateCtrl,
-                decoration: const InputDecoration(labelText: 'Estado (sigla) *'),
-                textCapitalization: TextCapitalization.characters,
-                maxLength: 2,
-                validator: (v) {
-                  if ((v?.trim().length ?? 0) != 2) {
-                    return 'Informe a sigla (ex: SP)';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: cityCtrl,
-                decoration: const InputDecoration(labelText: 'Cidade *'),
-                textCapitalization: TextCapitalization.words,
-                validator: (v) =>
-                    Validators.required(v, field: 'Cidade'),
-              ),
-              TextFormField(
-                controller: neighborhoodCtrl,
-                decoration:
-                    const InputDecoration(labelText: 'Bairro *'),
-                textCapitalization: TextCapitalization.words,
-                validator: (v) =>
-                    Validators.required(v, field: 'Bairro'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (!formKey.currentState!.validate()) return;
-              try {
-                await ref.read(deliveryRepositoryProvider).addZone(
-                      state: stateCtrl.text.trim().toUpperCase(),
-                      city: cityCtrl.text.trim(),
-                      neighborhood: neighborhoodCtrl.text.trim(),
-                    );
-                ref.invalidate(deliveryZonesProvider);
-                if (ctx.mounted) Navigator.pop(ctx);
-              } catch (e) {
-                if (ctx.mounted) {
-                  ScaffoldMessenger.of(ctx).showSnackBar(
-                    SnackBar(content: Text('Erro: $e')),
-                  );
-                }
-              }
-            },
-            child: const Text('Adicionar'),
-          ),
-        ],
-      ),
+      builder: (_) => const _AddZoneDialog(),
     );
+  }
+}
 
-    stateCtrl.dispose();
-    cityCtrl.dispose();
-    neighborhoodCtrl.dispose();
+/// Diálogo com estado próprio: os controllers são descartados no `dispose`
+/// do widget, depois da animação de fechamento. Descartá-los logo após o
+/// `showDialog` retornar causava "'_dependents.isEmpty': is not true".
+class _AddZoneDialog extends ConsumerStatefulWidget {
+  const _AddZoneDialog();
+
+  @override
+  ConsumerState<_AddZoneDialog> createState() => _AddZoneDialogState();
+}
+
+class _AddZoneDialogState extends ConsumerState<_AddZoneDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _stateCtrl = TextEditingController();
+  final _cityCtrl = TextEditingController();
+  final _neighborhoodCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _stateCtrl.dispose();
+    _cityCtrl.dispose();
+    _neighborhoodCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    try {
+      await ref.read(deliveryRepositoryProvider).addZone(
+            state: _stateCtrl.text.trim().toUpperCase(),
+            city: _cityCtrl.text.trim(),
+            neighborhood: _neighborhoodCtrl.text.trim(),
+          );
+      ref.invalidate(deliveryZonesProvider);
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Nova zona de entrega'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _stateCtrl,
+              decoration:
+                  const InputDecoration(labelText: 'Estado (sigla) *'),
+              textCapitalization: TextCapitalization.characters,
+              maxLength: 2,
+              validator: (v) {
+                if ((v?.trim().length ?? 0) != 2) {
+                  return 'Informe a sigla (ex: SP)';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: _cityCtrl,
+              decoration: const InputDecoration(labelText: 'Cidade *'),
+              textCapitalization: TextCapitalization.words,
+              validator: (v) => Validators.required(v, field: 'Cidade'),
+            ),
+            TextFormField(
+              controller: _neighborhoodCtrl,
+              decoration: const InputDecoration(labelText: 'Bairro *'),
+              textCapitalization: TextCapitalization.words,
+              validator: (v) => Validators.required(v, field: 'Bairro'),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: const Text('Adicionar'),
+        ),
+      ],
+    );
   }
 }
 
@@ -253,52 +274,74 @@ class _BlockedDatesTab extends ConsumerWidget {
     );
     if (picked == null || !context.mounted) return;
 
-    final reasonCtrl = TextEditingController();
     await showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(
-          'Bloquear ${picked.day.toString().padLeft(2, '0')}/'
-          '${picked.month.toString().padLeft(2, '0')}/'
-          '${picked.year}',
-        ),
-        content: TextField(
-          controller: reasonCtrl,
-          decoration: const InputDecoration(
-              labelText: 'Motivo (opcional)'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              try {
-                await ref
-                    .read(deliveryRepositoryProvider)
-                    .addBlockedDate(
-                      picked,
-                      reason: reasonCtrl.text.trim().isEmpty
-                          ? null
-                          : reasonCtrl.text.trim(),
-                    );
-                ref.invalidate(blockedDatesProvider);
-                if (ctx.mounted) Navigator.pop(ctx);
-              } catch (e) {
-                if (ctx.mounted) {
-                  ScaffoldMessenger.of(ctx).showSnackBar(
-                    SnackBar(content: Text('Erro: $e')),
-                  );
-                }
-              }
-            },
-            child: const Text('Bloquear'),
-          ),
-        ],
-      ),
+      builder: (_) => _BlockDateDialog(date: picked),
     );
-    reasonCtrl.dispose();
+  }
+}
+
+/// Diálogo com estado próprio para o controller não ser descartado antes
+/// do fim da animação de fechamento (ver [_AddZoneDialog]).
+class _BlockDateDialog extends ConsumerStatefulWidget {
+  const _BlockDateDialog({required this.date});
+  final DateTime date;
+
+  @override
+  ConsumerState<_BlockDateDialog> createState() => _BlockDateDialogState();
+}
+
+class _BlockDateDialogState extends ConsumerState<_BlockDateDialog> {
+  final _reasonCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _reasonCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final reason = _reasonCtrl.text.trim();
+    try {
+      await ref.read(deliveryRepositoryProvider).addBlockedDate(
+            widget.date,
+            reason: reason.isEmpty ? null : reason,
+          );
+      ref.invalidate(blockedDatesProvider);
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final d = widget.date;
+    return AlertDialog(
+      title: Text(
+        'Bloquear ${d.day.toString().padLeft(2, '0')}/'
+        '${d.month.toString().padLeft(2, '0')}/'
+        '${d.year}',
+      ),
+      content: TextField(
+        controller: _reasonCtrl,
+        decoration: const InputDecoration(labelText: 'Motivo (opcional)'),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: const Text('Bloquear'),
+        ),
+      ],
+    );
   }
 }
 
