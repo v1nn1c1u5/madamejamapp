@@ -42,7 +42,7 @@ Future<void> main() async {
       (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.android)) {
     Stripe.publishableKey = AppConfig.stripePublishableKey;
-    Stripe.merchantIdentifier = 'merchant.com.madamejam';
+    Stripe.merchantIdentifier = 'merchant.br.com.madamejam.app';
     await Stripe.instance.applySettings();
   }
 

@@ -1,4 +1,4 @@
-package com.example.madamejam
+package br.com.madamejam.app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
