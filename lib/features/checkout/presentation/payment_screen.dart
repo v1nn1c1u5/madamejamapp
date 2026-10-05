@@ -161,8 +161,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           }
         });
 
-    // Timeout caso a confirmação via webhook demore
-    Future.delayed(const Duration(minutes: 3), () {
+    // Timeout caso a confirmação via webhook demore. Pix é assíncrono: o
+    // cliente abre o app do banco e paga depois, então 3 min era curto.
+    Future.delayed(const Duration(minutes: 15), () {
       if (mounted && _loading) {
         _realtimeSub?.cancel();
         setState(() {

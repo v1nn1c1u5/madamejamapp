@@ -137,7 +137,10 @@ Deno.serve(async (req) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalCents,
       currency: 'brl',
-      payment_method_types: ['card'],
+      payment_method_types: ['card', 'pix'],
+      // QR code do Pix vale 30 min (padrão da Stripe é 24 h; pedido pendente
+      // por tanto tempo não faz sentido para uma confeitaria).
+      payment_method_options: { pix: { expires_after_seconds: 1800 } },
       metadata: { order_id: order.id },
     })
 
