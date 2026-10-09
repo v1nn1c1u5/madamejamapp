@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../auth/auth_routes.dart';
+import '../auth/checkout_auth.dart';
+import '../scaffold/root_scaffold_messenger.dart';
 import '../supabase/supabase_providers.dart';
 import 'go_router_refresh_stream.dart';
 import '../../features/auth/presentation/sign_in_screen.dart';
@@ -12,6 +15,9 @@ import '../../features/cart/presentation/cart_screen.dart';
 import '../../features/checkout/presentation/checkout_screen.dart';
 import '../../features/checkout/presentation/payment_screen.dart';
 import '../../features/checkout/presentation/order_confirmation_screen.dart';
+import '../../features/addresses/domain/address.dart';
+import '../../features/addresses/presentation/address_list_screen.dart';
+import '../../features/addresses/presentation/address_form_screen.dart';
 import '../../features/orders/presentation/order_history_screen.dart';
 import '../../features/orders/presentation/order_tracking_screen.dart';
 import '../../features/admin/presentation/admin_home_screen.dart';
@@ -34,6 +40,8 @@ abstract final class AppRoutes {
   static const checkout = '/checkout';
   static const payment = '/checkout/payment';
   static const myOrders = '/orders';
+  static const addresses = '/addresses';
+  static const addressForm = '/addresses/form';
 
   static String productDetailPath(String id) => '/product/$id';
   static String orderConfirmationPath(String id) => '/orders/$id/confirmation';
@@ -50,12 +58,17 @@ abstract final class AppRoutes {
   static String adminProductEditPath(String id) => '/admin/products/$id';
   static String adminOrderDetailPath(String id) => '/admin/orders/$id';
 
-  // Rotas que exigem autenticação obrigatória.
-  static const _protectedPrefixes = [checkout, myOrders, adminHome];
+  /// Prefixos de rotas que exigem autenticação obrigatória.
+  static const authRequiredPrefixes = [
+    checkout,
+    myOrders,
+    addresses,
+    adminHome,
+  ];
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: AppRoutes.catalog,
     refreshListenable: GoRouterRefreshStream(
       ref.watch(supabaseClientProvider).auth.onAuthStateChange,
@@ -72,12 +85,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       }.contains(loc);
 
       // Rota exige login se começa com algum prefixo protegido.
-      final needsAuth = AppRoutes._protectedPrefixes
-          .any((prefix) => loc == prefix || loc.startsWith('$prefix/'));
+      final needsAuth = routeRequiresAuth(loc);
 
       if (!loggedIn && needsAuth) {
         // Guarda destino para redirecionar após login.
-        return '${AppRoutes.signIn}?redirect=${Uri.encodeComponent(loc)}';
+        return signInRouteWithRedirect(loc);
       }
       if (loggedIn && atAuthScreen) {
         return isAdmin ? AppRoutes.adminHome : AppRoutes.catalog;
@@ -119,17 +131,37 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.checkout,
-        builder: (context, state) => const CheckoutScreen(),
+        builder: (context, state) => AuthRequired(
+          destination: AppRoutes.checkout,
+          child: const CheckoutScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.payment,
-        builder: (context, state) => PaymentScreen(
-          checkoutData: state.extra! as CheckoutData,
+        builder: (context, state) => AuthRequired(
+          destination: AppRoutes.payment,
+          child: PaymentScreen(
+            checkoutData: state.extra! as CheckoutData,
+          ),
         ),
       ),
       GoRoute(
         path: AppRoutes.myOrders,
         builder: (context, state) => const OrderHistoryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.addresses,
+        builder: (context, state) => AuthRequired(
+          destination: AppRoutes.addresses,
+          child: const AddressListScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.addressForm,
+        builder: (context, state) => AuthRequired(
+          destination: AppRoutes.addressForm,
+          child: AddressFormScreen(existing: state.extra as Address?),
+        ),
       ),
       GoRoute(
         path: '/orders/:id',
@@ -187,4 +219,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  router.routerDelegate.addListener(() {
+    rootScaffoldMessengerKey.currentState?.clearSnackBars();
+  });
+
+  return router;
 });

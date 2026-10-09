@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
+import '../../../core/auth/auth_routes.dart';
 import '../../../core/utils/validators.dart';
 import '../../../shared/widgets/brand_wordmark.dart';
 import '../application/auth_controller.dart';
@@ -52,6 +53,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     final state = ref.watch(authControllerProvider);
     final loading = state.isLoading;
     final hasRedirect = _redirectTarget(context) != null;
+    final canSkipLogin = allowsGuestBypass(_redirectTarget(context));
     ref.listenAuthErrors(context);
 
     final textTheme = Theme.of(context).textTheme;
@@ -129,7 +131,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           ),
                         ],
                       ),
-                      if (hasRedirect) ...[
+                      if (hasRedirect && canSkipLogin) ...[
                         const SizedBox(height: 4),
                         TextButton(
                           onPressed: () => context.go(AppRoutes.catalog),

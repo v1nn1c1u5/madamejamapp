@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/auth/auth_actions.dart';
 import '../../../core/router/app_router.dart';
-import '../../auth/data/auth_repository.dart';
 
 class AdminHomeScreen extends ConsumerWidget {
   const AdminHomeScreen({super.key});
@@ -15,10 +15,14 @@ class AdminHomeScreen extends ConsumerWidget {
         title: const Text('Madame Jam · Admin'),
         actions: [
           IconButton(
+            tooltip: 'Ver loja',
+            icon: const Icon(Icons.storefront_outlined),
+            onPressed: () => context.go(AppRoutes.catalog),
+          ),
+          IconButton(
             tooltip: 'Sair',
             icon: const Icon(Icons.logout),
-            onPressed: () =>
-                ref.read(authRepositoryProvider).signOut(),
+            onPressed: () => signOut(ref, context: context),
           ),
         ],
       ),

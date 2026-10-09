@@ -81,6 +81,7 @@ class OrderRepository {
         .select(_orderSelect)
         .eq('payment_status', 'paid')
         .eq('delivery_date', dateStr)
+        .order('delivery_time')
         .order('created_at');
     return _map(data);
   }

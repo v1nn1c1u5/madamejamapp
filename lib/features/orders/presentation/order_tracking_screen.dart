@@ -68,12 +68,19 @@ class _TrackingBody extends StatelessWidget {
           Text(
             '${order.deliveryDate.day.toString().padLeft(2, '0')}/'
             '${order.deliveryDate.month.toString().padLeft(2, '0')}/'
-            '${order.deliveryDate.year}',
+            '${order.deliveryDate.year}'
+            '${order.formattedDeliveryTime != null ? ' às ${order.formattedDeliveryTime}' : ''}',
             style: textTheme.headlineSmall,
           ),
           const SizedBox(height: 4),
           Text(order.deliveryAddress.formatted,
               style: textTheme.bodyMedium),
+          if (order.notes != null && order.notes!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text('Observações',
+                style: textTheme.bodySmall?.copyWith(color: Colors.grey)),
+            Text(order.notes!, style: textTheme.bodyMedium),
+          ],
           const SizedBox(height: 28),
 
           Text('Status de produção', style: textTheme.titleMedium),

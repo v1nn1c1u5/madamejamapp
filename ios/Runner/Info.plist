@@ -28,6 +28,21 @@
 	<string>Necessário para adicionar fotos aos produtos.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Necessário para fotografar produtos.</string>
+	<!-- Retorno do Pix/3DS da Stripe: madamejam://stripe-redirect -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>br.com.madamejam.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>madamejam</string>
+			</array>
+		</dict>
+	</array>
+	<!-- O go_router não deve tratar o link de retorno da Stripe como rota -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

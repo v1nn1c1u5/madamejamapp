@@ -88,11 +88,14 @@ class _OrderDetailBody extends ConsumerWidget {
             value:
                 '${order.deliveryDate.day.toString().padLeft(2, '0')}/'
                 '${order.deliveryDate.month.toString().padLeft(2, '0')}/'
-                '${order.deliveryDate.year}',
+                '${order.deliveryDate.year}'
+                '${order.formattedDeliveryTime != null ? ' às ${order.formattedDeliveryTime}' : ''}',
           ),
           _InfoRow(
               label: 'Endereço',
               value: order.deliveryAddress.formatted),
+          if (order.notes != null && order.notes!.isNotEmpty)
+            _InfoRow(label: 'Observações', value: order.notes!),
           const SizedBox(height: 20),
 
           // ── Itens ─────────────────────────────────────────────────

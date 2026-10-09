@@ -1,21 +1,40 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/config/app_config.dart';
+import 'core/network/http_overrides.dart';
 import 'core/router/app_router.dart';
+import 'core/scaffold/root_scaffold_messenger.dart';
 import 'core/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Proxy/antivírus corporativo pode injetar certificado autoassinado.
+  setupDevHttpOverridesIfNeeded();
+
   if (AppConfig.hasSupabaseConfig) {
     await Supabase.initialize(
       url: AppConfig.supabaseUrl,
-      anonKey: AppConfig.supabaseAnonKey, // ignore: deprecated_member_use
+      publishableKey: AppConfig.supabaseAnonKey,
     );
+
+    // A sessão persistida é restaurada mesmo vencida e só renovada depois,
+    // em segundo plano. Sem aguardar, as primeiras consultas ao reabrir o
+    // app falham com "JWT expired" (PGRST303).
+    final auth = Supabase.instance.client.auth;
+    if (auth.currentSession?.isExpired ?? false) {
+      try {
+        await auth.refreshSession();
+      } catch (_) {
+        // Sem rede ou refresh token inválido: o GoTrue trata a sessão e o
+        // fluxo de login normal assume a partir daqui.
+      }
+    }
   }
 
   // flutter_stripe só tem implementação nativa em iOS e Android.
@@ -23,7 +42,7 @@ Future<void> main() async {
       (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.android)) {
     Stripe.publishableKey = AppConfig.stripePublishableKey;
-    Stripe.merchantIdentifier = 'merchant.com.madamejam';
+    Stripe.merchantIdentifier = 'merchant.br.com.madamejam.app';
     await Stripe.instance.applySettings();
   }
 
@@ -40,6 +59,13 @@ class MadameJamApp extends ConsumerWidget {
         title: 'Madame Jam',
         theme: AppTheme.light,
         debugShowCheckedModeBanner: false,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('pt', 'BR')],
+        locale: const Locale('pt', 'BR'),
         home: const _MissingConfigScreen(),
       );
     }
@@ -50,6 +76,14 @@ class MadameJamApp extends ConsumerWidget {
       title: 'Madame Jam',
       theme: AppTheme.light,
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('pt', 'BR')],
+      locale: const Locale('pt', 'BR'),
       routerConfig: router,
     );
   }

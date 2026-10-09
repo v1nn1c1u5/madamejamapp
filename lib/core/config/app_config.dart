@@ -3,14 +3,9 @@
 /// Os valores são injetados em tempo de build via `--dart-define` (ou um
 /// arquivo `--dart-define-from-file`), nunca commitados no repositório.
 ///
-/// Exemplo:
-/// ```
-/// flutter run \
-///   --dart-define=SUPABASE_URL=https://xxxx.supabase.co \
-///   --dart-define=SUPABASE_ANON_KEY=eyJhbGci...
-/// ```
-///
-/// A `anon key` é pública por design (protegida por RLS no banco). A
+/// Preencha com a chave pública do Supabase (Settings → API):
+/// - `sb_publishable_...` (recomendado) ou
+/// - `eyJhbGci...` (anon legacy JWT).
 /// `service_role` do Supabase e a `secret key` do Stripe NUNCA entram no app —
 /// vivem apenas nas Supabase Edge Functions.
 abstract final class AppConfig {

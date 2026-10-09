@@ -1,0 +1,20 @@
+# Madame Jam — Supabase local/deploy config
+# Project ref: tehbqmwrnzkeijkpyiuy
+
+project_id = "tehbqmwrnzkeijkpyiuy"
+
+[api]
+enabled = true
+
+[db]
+major_version = 15
+
+[functions.create-payment-intent]
+verify_jwt = true
+
+[functions.validate-delivery-zone]
+verify_jwt = true
+
+# Stripe chama sem JWT do usuário
+[functions.stripe-webhook]
+verify_jwt = false

@@ -76,6 +76,8 @@ class _ProductDetailBodyState
         ..showSnackBar(SnackBar(
           content: Text(
               'Quantidade mínima para "${sku.name}" é ${sku.minQuantity}.'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
         ));
       return;
     }
@@ -92,6 +94,9 @@ class _ProductDetailBodyState
       ..clearSnackBars()
       ..showSnackBar(SnackBar(
         content: Text('${p.name} adicionado ao carrinho.'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+        persist: false,
         action: SnackBarAction(
           label: 'Ver carrinho',
           onPressed: () => context.push(AppRoutes.cart),

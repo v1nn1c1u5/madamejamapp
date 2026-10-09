@@ -83,6 +83,8 @@ class Order {
     required this.productionStatus,
     required this.total,
     required this.createdAt,
+    this.deliveryTime,
+    this.notes,
     this.stripePaymentIntentId,
     this.items = const [],
     this.customerName,
@@ -97,10 +99,19 @@ class Order {
   final String productionStatus;
   final double total;
   final DateTime createdAt;
+  /// Horário desejado de entrega, formato "HH:mm" (ou "HH:mm:ss" vindo do
+  /// Postgres — use [formattedDeliveryTime] para exibir).
+  final String? deliveryTime;
+  final String? notes;
   final String? stripePaymentIntentId;
   final List<OrderItem> items;
   final String? customerName;
   final String? customerPhone;
+
+  String? get formattedDeliveryTime =>
+      deliveryTime != null && deliveryTime!.length >= 5
+          ? deliveryTime!.substring(0, 5)
+          : deliveryTime;
 
   bool get isPaid => paymentStatus == 'paid';
 
@@ -139,6 +150,8 @@ class Order {
       productionStatus: json['production_status'] as String,
       total: (json['total'] as num).toDouble(),
       createdAt: DateTime.parse(json['created_at'] as String),
+      deliveryTime: json['delivery_time'] as String?,
+      notes: json['notes'] as String?,
       stripePaymentIntentId:
           json['stripe_payment_intent_id'] as String?,
       items: rawItems

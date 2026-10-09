@@ -5,20 +5,21 @@ import '../../../core/theme/app_colors.dart';
 import '../data/auth_repository.dart';
 import '../application/auth_controller.dart';
 
+String authErrorMessage(Object? error) {
+  if (error is AuthFailure) return error.message;
+  return 'Não foi possível concluir. Tente novamente.';
+}
+
 /// Escuta erros do [authControllerProvider] e exibe um SnackBar traduzido.
 extension AuthFeedback on WidgetRef {
   void listenAuthErrors(BuildContext context) {
     listen<AsyncValue<void>>(authControllerProvider, (prev, next) {
       if (next.hasError && !next.isLoading) {
-        final error = next.error;
-        final message = error is AuthFailure
-            ? error.message
-            : 'Não foi possível concluir. Tente novamente.';
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
-              content: Text(message),
+              content: Text(authErrorMessage(next.error)),
               backgroundColor: AppColors.error,
             ),
           );

@@ -55,9 +55,9 @@ Deno.serve(async (req) => {
     }
 
     // 3. Parse request body
-    const { cart, deliveryDate, deliveryAddress } = await req.json()
+    const { cart, deliveryDate, deliveryTime, deliveryAddress, notes } = await req.json()
 
-    if (!cart?.length || !deliveryDate || !deliveryAddress) {
+    if (!cart?.length || !deliveryDate || !deliveryTime || !deliveryAddress) {
       return new Response(JSON.stringify({ error: 'Dados inválidos' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -108,7 +108,9 @@ Deno.serve(async (req) => {
       .insert({
         customer_id: customer.id,
         delivery_date: deliveryDate,
+        delivery_time: deliveryTime,
         delivery_address: deliveryAddress,
+        notes: notes || null,
         total: totalCents / 100,
         payment_status: 'pending',
         production_status: 'aguardando',
@@ -136,6 +138,9 @@ Deno.serve(async (req) => {
       amount: totalCents,
       currency: 'brl',
       payment_method_types: ['card', 'pix'],
+      // QR code do Pix vale 30 min (padrão da Stripe é 24 h; pedido pendente
+      // por tanto tempo não faz sentido para uma confeitaria).
+      payment_method_options: { pix: { expires_after_seconds: 1800 } },
       metadata: { order_id: order.id },
     })
 

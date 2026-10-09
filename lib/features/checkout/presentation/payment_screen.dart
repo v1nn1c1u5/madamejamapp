@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/auth/auth_routes.dart';
+import '../../../core/auth/checkout_auth.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/supabase/supabase_providers.dart';
 import '../../../core/theme/app_colors.dart';
@@ -34,6 +36,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   Future<void> _pay() async {
+    final session = ref.read(sessionProvider);
+    if (session == null) {
+      context.go(signInRouteWithRedirect(AppRoutes.payment));
+      return;
+    }
+
     setState(() {
       _loading = true;
       _errorMessage = null;
@@ -55,7 +63,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               .toList(),
           'deliveryDate':
               data.deliveryDate.toIso8601String().substring(0, 10),
+          'deliveryTime': data.deliveryTime,
           'deliveryAddress': data.deliveryAddress.toJson(),
+          if (data.notes != null) 'notes': data.notes,
         },
       );
 
@@ -71,12 +81,15 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             'Pagamento indisponível nesta plataforma. Use o app móvel.');
       }
 
-      // 2. Initialize Payment Sheet (card + PIX handled by Stripe UI)
+      // 2. Initialize Payment Sheet (cartão)
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
           merchantDisplayName: 'Madame Jam',
           style: ThemeMode.light,
+          // Pix e 3DS abrem uma página da Stripe/banco; este link (scheme
+          // registrado no Info.plist do iOS) traz o cliente de volta ao app.
+          returnURL: 'madamejam://stripe-redirect',
         ),
       );
 
@@ -100,9 +113,27 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     } catch (e) {
       setState(() {
         _loading = false;
-        _errorMessage = 'Erro ao processar pagamento: $e';
+        _errorMessage = _paymentErrorMessage(e);
       });
     }
+  }
+
+  String _paymentErrorMessage(Object error) {
+    final text = error.toString();
+
+    if (text.contains('status: 401') || text.contains('Unauthorized')) {
+      return 'Faça login para concluir o pagamento.';
+    }
+
+    final detailsMatch =
+        RegExp(r'details: \{error: ([^}]+)\}').firstMatch(text);
+    if (detailsMatch != null) {
+      return detailsMatch
+          .group(1)!
+          .replaceFirst(RegExp(r'^Error:\s*'), '');
+    }
+
+    return 'Erro ao processar pagamento. Tente novamente.';
   }
 
   void _watchOrderConfirmation(String orderId) {
@@ -133,8 +164,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           }
         });
 
-    // Timeout after 10 minutes for PIX
-    Future.delayed(const Duration(minutes: 10), () {
+    // Timeout caso a confirmação via webhook demore. Pix é assíncrono: o
+    // cliente abre o app do banco e paga depois, então 3 min era curto.
+    Future.delayed(const Duration(minutes: 15), () {
       if (mounted && _loading) {
         _realtimeSub?.cancel();
         setState(() {
@@ -182,18 +214,6 @@ class _WaitingPayment extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge,
               textAlign: TextAlign.center,
             ),
-            if (orderId != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                'Para PIX: após pagar no seu banco, '
-                'esta tela será atualizada automaticamente.',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-            ],
           ],
         ),
       ),
@@ -222,6 +242,9 @@ class _PaymentBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const CheckoutIdentityBanner(),
+          const SizedBox(height: 20),
+
           // ── Resumo ────────────────────────────────────────────────
           Text('Resumo', style: textTheme.titleMedium),
           const SizedBox(height: 8),
@@ -230,12 +253,19 @@ class _PaymentBody extends StatelessWidget {
             value:
                 '${data.deliveryDate.day.toString().padLeft(2, '0')}/'
                 '${data.deliveryDate.month.toString().padLeft(2, '0')}/'
-                '${data.deliveryDate.year}',
+                '${data.deliveryDate.year} às ${data.deliveryTime}',
           ),
           _InfoRow(
             label: 'Endereço',
             value: data.deliveryAddress.formatted,
+            expandValue: true,
           ),
+          if (data.notes != null) ...[
+            const SizedBox(height: 8),
+            Text('Observações', style: textTheme.bodySmall?.copyWith(
+                color: Colors.grey)),
+            Text(data.notes!, style: textTheme.bodyMedium),
+          ],
           const SizedBox(height: 12),
           ...data.items.map(
             (item) => _InfoRow(
@@ -285,7 +315,7 @@ class _PaymentBody extends StatelessWidget {
           Text('Forma de pagamento', style: textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
-            'Cartão de crédito/débito ou PIX — escolha no próximo passo.',
+            'Cartão de crédito ou débito.',
             style: textTheme.bodySmall?.copyWith(color: Colors.grey),
           ),
           const SizedBox(height: 20),
@@ -318,12 +348,30 @@ class _PaymentBody extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
+  const _InfoRow({
+    required this.label,
+    required this.value,
+    this.expandValue = false,
+  });
   final String label;
   final String value;
 
+  /// Use para valores longos (ex.: endereço): o valor ocupa 2/3 da linha e
+  /// quebra em várias linhas. Por padrão o valor fica no tamanho natural e o
+  /// rótulo usa o restante (bom para itens e preços).
+  final bool expandValue;
+
   @override
   Widget build(BuildContext context) {
+    final valueText = Text(
+      value,
+      textAlign: TextAlign.right,
+      style: Theme.of(context)
+          .textTheme
+          .bodyMedium
+          ?.copyWith(fontWeight: FontWeight.w600),
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -334,11 +382,10 @@ class _InfoRow extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium),
           ),
           const SizedBox(width: 8),
-          Text(value,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
+          if (expandValue)
+            Expanded(flex: 2, child: valueText)
+          else
+            valueText,
         ],
       ),
     );

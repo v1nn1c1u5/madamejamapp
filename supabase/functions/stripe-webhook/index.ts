@@ -13,7 +13,16 @@ Deno.serve(async (req) => {
 
     let event: Stripe.Event
     try {
-      event = stripe.webhooks.constructEvent(body, signature!, webhookSecret)
+      // No Deno só há Web Crypto (assíncrono): a versão síncrona
+      // constructEvent lança "SubtleCryptoProvider cannot be used in a
+      // synchronous context" e todo webhook era recusado com 400.
+      event = await stripe.webhooks.constructEventAsync(
+        body,
+        signature!,
+        webhookSecret,
+        undefined,
+        Stripe.createSubtleCryptoProvider(),
+      )
     } catch (err) {
       return new Response(`Webhook signature error: ${err}`, { status: 400 })
     }
